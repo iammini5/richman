@@ -1,0 +1,13 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Base.Theme.RichManGooglePlayBillingLibraryTest" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <style name="Theme.RichManGooglePlayBillingLibraryTest" parent="Base.Theme.RichManGooglePlayBillingLibraryTest" />
+
+    <style name="Theme.RichManGooglePlayBillingLibraryTest.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.RichManGooglePlayBillingLibraryTest.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+</resources>
