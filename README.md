@@ -1,12 +1,18 @@
-# 2026-W21 Weekly Changes
+# Richman
+
+## Weekly Changes
+
+This README is the home for weekly Richman project change notes.
+
+### 2026-W21 Weekly Changes
 
 Date range: May 18, 2026 to May 24, 2026
 
-## Summary
+#### Summary
 
 This week focused on preparing Richman for Google Play closed testing, adding Play Billing monetization, improving the purchase UI, and automating release uploads.
 
-## Android and Build
+#### Android and Build
 
 - Updated the Android app package to `com.legendsoftware.richman`.
 - Updated Gradle and Android build configuration so the project builds with the supported Android Gradle Plugin version.
@@ -15,7 +21,7 @@ This week focused on preparing Richman for Google Play closed testing, adding Pl
 - Added Play service account credential handling while keeping credential JSON files out of Git.
 - Uploaded release builds through the Play publishing API to the `alpha` closed testing track.
 
-## Google Play Billing
+#### Google Play Billing
 
 - Upgraded Google Play Billing Library to `9.0.0`.
 - Added one-time product support for coin packs:
@@ -35,7 +41,7 @@ This week focused on preparing Richman for Google Play closed testing, adding Pl
 - Updated purchase fulfillment so every product returned by `Purchase.getProducts()` grants its entitlement.
 - Prevented subscription purchases from being consumed while allowing one-time products to be repurchased.
 
-## Play Console Monetization
+#### Play Console Monetization
 
 - Created and activated the starter bundle one-time product in Play Console.
 - Created and activated Basic, Plus, and Pro monthly subscription products.
@@ -43,7 +49,7 @@ This week focused on preparing Richman for Google Play closed testing, adding Pl
 - Marked the one-time products as high priority for merchandising placements.
 - Documented Play products and publishing flow in project markdown files.
 
-## User Interface
+#### User Interface
 
 - Reduced oversized text across the main menu and purchase screens.
 - Reworked the app style with a quieter dark surface, gold/green accents, smaller cards, and tighter spacing.
@@ -52,7 +58,7 @@ This week focused on preparing Richman for Google Play closed testing, adding Pl
   - Basic + Plus + Pro subscription add-on checkout
 - Kept regular coin packs in the coin menu and regular subscriptions in the premium menu.
 
-## Project Operations
+#### Project Operations
 
 - Added `ROLES.md` for Product Manager, Engineer, and Tester responsibilities.
 - Added Play publishing documentation.
@@ -60,13 +66,13 @@ This week focused on preparing Richman for Google Play closed testing, adding Pl
 - Added Play listing image assets.
 - Added this weekly change log space so future weekly changes can be committed with code.
 
-## Validation
+#### Validation
 
 - Ran debug builds after code and resource changes.
 - Built signed release App Bundles.
 - Uploaded accepted Play Alpha releases through Gradle Play Publisher.
 
-## Known Follow-Ups
+#### Known Follow-Ups
 
 - Capture fresh app screenshots from Android Studio or a local emulator outside the sandbox, because sandboxed `adb` cannot start here.
 - Continue closed testing until Play production access requirements are satisfied.
