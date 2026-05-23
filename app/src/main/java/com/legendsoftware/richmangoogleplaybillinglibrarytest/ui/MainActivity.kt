@@ -62,20 +62,30 @@ class MainActivity : AppCompatActivity() {
 
         //========== buy coins ==========//
         binding.buyCoins.setOnClickListener {
-            //purchaseManager.launchPurchaseFlowForProduct()
-            val intent = Intent(this, PurchaseActivity::class.java)
-            startActivity(intent)
-
+            startActivity(
+                Intent(this, PurchaseActivity::class.java)
+                    .putExtra(PurchaseActivity.EXTRA_PRODUCT_GROUP, PurchaseActivity.PRODUCT_GROUP_COINS)
+            )
         }
 
         //========== remove ads ==========//
         binding.removeAds.setOnClickListener { }
 
         //========== premium features ==========//
-        binding.premiumFeatures.setOnClickListener { }
+        binding.premiumFeatures.setOnClickListener {
+            startActivity(
+                Intent(this, PurchaseActivity::class.java)
+                    .putExtra(PurchaseActivity.EXTRA_PRODUCT_GROUP, PurchaseActivity.PRODUCT_GROUP_PREMIUM)
+            )
+        }
 
         //========== more ==========//
-        binding.more.setOnClickListener { }
+        binding.more.setOnClickListener {
+            startActivity(
+                Intent(this, PurchaseActivity::class.java)
+                    .putExtra(PurchaseActivity.EXTRA_PRODUCT_GROUP, PurchaseActivity.PRODUCT_GROUP_BUNDLE)
+            )
+        }
 
 
         // in-app update

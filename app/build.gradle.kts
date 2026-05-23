@@ -1,27 +1,59 @@
+import java.util.Properties
+import java.io.File
+import com.github.triplet.gradle.androidpublisher.ReleaseStatus
+
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.play.publisher)
 }
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use(::load)
+    }
+}
+
+val hasReleaseSigning = listOf(
+    "RELEASE_STORE_FILE",
+    "RELEASE_STORE_PASSWORD",
+    "RELEASE_KEY_ALIAS",
+    "RELEASE_KEY_PASSWORD"
+).all { !localProperties.getProperty(it).isNullOrBlank() }
 
 android {
     namespace = "com.legendsoftware.richmangoogleplaybillinglibrarytest"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.legendsoftware.richmangoogleplaybillinglibrarytest"
+        applicationId = "com.legendsoftware.richman"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.5.0"
+        versionCode = 21
+        versionName = "1.6.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = rootProject.file(localProperties.getProperty("RELEASE_STORE_FILE"))
+                storePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -32,9 +64,32 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
+    }
     buildFeatures {
         viewBinding = true
     }
+}
+
+play {
+    val configuredServiceAccountFile = localProperties.getProperty("PLAY_SERVICE_ACCOUNT_FILE")
+    val serviceAccountKey = configuredServiceAccountFile
+        ?.takeIf { it.isNotBlank() }
+        ?.let { path ->
+            File(path).takeIf { it.isAbsolute } ?: rootProject.file(path)
+        }
+        ?: rootProject.file("service-account.json")
+
+    if (serviceAccountKey.exists()) {
+        serviceAccountCredentials.set(serviceAccountKey)
+    }
+
+    defaultToAppBundles.set(true)
+    track.set(localProperties.getProperty("PLAY_TRACK") ?: "alpha")
+    releaseStatus.set(ReleaseStatus.COMPLETED)
 }
 
 dependencies {

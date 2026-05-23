@@ -2,4 +2,13 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="richman_surface">#171A1C</color>
+    <color name="richman_surface_high">#24282B</color>
+    <color name="richman_text_primary">#F8F3E7</color>
+    <color name="richman_text_secondary">#C8C1B5</color>
+    <color name="richman_gold">#D8A928</color>
+    <color name="richman_green">#2F7D58</color>
+    <color name="richman_teal">#2C6F73</color>
+    <color name="richman_clay">#8A4E3C</color>
+    <color name="richman_blue">#3E5F88</color>
 </resources>

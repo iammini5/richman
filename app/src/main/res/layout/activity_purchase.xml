@@ -29,6 +29,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
                 android:text="Purchase Coins"
+                android:textColor="#FFFFFF"
                 android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
             <androidx.appcompat.widget.LinearLayoutCompat
@@ -53,7 +54,7 @@
                     android:layout_marginStart="8dp"
                     android:text="0"
                     android:textColor="#FFFFFF"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
@@ -78,11 +79,63 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
+            android:padding="12dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.0">
+
+            <TextView
+                android:id="@+id/screenTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/richman_surface_high"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:text="Purchase Coins"
+                android:textColor="@color/richman_text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/screenSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/richman_surface_high"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="10dp"
+                android:text="Choose a coin pack"
+                android:textColor="@color/richman_text_secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/purchaseStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="Loading coin products..."
+                android:textColor="@color/richman_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubscriptionAddOns"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:layout_marginHorizontal="6dp"
+                android:layout_marginBottom="6dp"
+                android:text="Subscribe to Basic + Plus + Pro"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:backgroundTint="@color/richman_green"
+                app:cornerRadius="8dp" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/inAppProducts"

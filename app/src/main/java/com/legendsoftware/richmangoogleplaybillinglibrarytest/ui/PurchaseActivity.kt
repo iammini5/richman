@@ -1,6 +1,7 @@
 package com.legendsoftware.richmangoogleplaybillinglibrarytest.ui
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -14,6 +15,15 @@ import com.android.billingclient.api.Purchase
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.adapter.PurchaseProductAdapter
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.PurchaseUpdateListener
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.COINS_100_PRODUCT_ID
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.COINS_200_PRODUCT_ID
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.COINS_500_PRODUCT_ID
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.COINS_50_PRODUCT_ID
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_MONTHLY_SUBSCRIPTION_ID
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.STARTER_BUNDLE_PRODUCT_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.databinding.ActivityPurchaseBinding
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.viewmodel.CoinManagerViewModel
 
@@ -22,6 +32,8 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
     private val coinManager: CoinManagerViewModel by viewModels()
     private lateinit var purchaseManager: RichmanPurchaseManager
     private lateinit var adapter: PurchaseProductAdapter
+    private val productGroup: String
+        get() = intent.getStringExtra(EXTRA_PRODUCT_GROUP) ?: PRODUCT_GROUP_COINS
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,14 +46,22 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
             insets
         }
         //========== main ==========//
+        configureScreenForProductGroup()
         purchaseManager = RichmanPurchaseManager(this, this)
 
         adapter = PurchaseProductAdapter(emptyList()) { productDetails ->
-            purchaseManager.launchPurchase(productDetails.productId)
+            if (productGroup == PRODUCT_GROUP_BUNDLE && productDetails.productId == STARTER_BUNDLE_PRODUCT_ID) {
+                purchaseManager.launchStarterMultiProductBundle()
+            } else {
+                purchaseManager.launchPurchase(productDetails.productId)
+            }
         }
 
         binding.inAppProducts.layoutManager = LinearLayoutManager(this)
         binding.inAppProducts.adapter = adapter
+        binding.btnSubscriptionAddOns.setOnClickListener {
+            purchaseManager.launchPremiumSubscriptionAddOns()
+        }
 
         coinManager.coins.observe(this) { coins ->
             binding.coins.text = coins.toString()
@@ -50,8 +70,33 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
     }
 
     override fun onProductsLoaded(productDetailsList: List<ProductDetails?>?) {
-        val safeList = productDetailsList?.filterNotNull() ?: emptyList()
+        val safeList = productDetailsList
+            ?.filterNotNull()
+            ?.filter { productDetails ->
+                val isSubscription = !productDetails.subscriptionOfferDetails.isNullOrEmpty()
+                when (productGroup) {
+                    PRODUCT_GROUP_PREMIUM -> isSubscription
+                    PRODUCT_GROUP_BUNDLE -> productDetails.productId == STARTER_BUNDLE_PRODUCT_ID
+                    else -> !isSubscription
+                }
+            } ?: emptyList()
+
         adapter.setProducts(safeList)
+        binding.btnSubscriptionAddOns.visibility = if (productDetailsList.canShowSubscriptionAddOns()) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        if (safeList.isEmpty()) {
+            binding.purchaseStatus.visibility = View.VISIBLE
+            binding.purchaseStatus.text = when (productGroup) {
+                PRODUCT_GROUP_PREMIUM -> "Premium subscription is not available yet. Please install from Google Play with a tester account and try again later."
+                PRODUCT_GROUP_BUNDLE -> "Bundle offers are not available yet. Please install from Google Play with a tester account and try again later."
+                else -> "Coin products are not available yet. Please install from Google Play with a tester account and try again later."
+            }
+        } else {
+            binding.purchaseStatus.visibility = View.GONE
+        }
     }
 
 //    override fun onProductsLoaded(productDetailsList: List<ProductDetails?>?) {
@@ -62,25 +107,55 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
 
 
     override fun onPurchaseSuccess(purchase: Purchase?) {
-        // Update user account with purchased coins
-        purchase?.products?.getOrNull(0)?.let { productId ->
-            val coins = when (productId) {
-                "com.legendsoftware.richman.coins.50" -> 50
-                "com.legendsoftware.richman.coins.100" -> 100
-                "com.legendsoftware.richman.coins.200" -> 200
-                "com.legendsoftware.richman.coins.500" -> 500
+        val purchasedProducts = purchase?.products.orEmpty()
+        if (purchasedProducts.any { it.isSubscriptionProductId() }) {
+            Toast.makeText(this, "Subscription active", Toast.LENGTH_SHORT).show()
+        }
+
+        val coins = purchasedProducts.sumOf { productId ->
+            when (productId) {
+                COINS_50_PRODUCT_ID -> 50
+                COINS_100_PRODUCT_ID -> 100
+                COINS_200_PRODUCT_ID -> 200
+                COINS_500_PRODUCT_ID -> 500
+                STARTER_BUNDLE_PRODUCT_ID -> 150
                 else -> 0
             }
+        }
+
+        if (coins > 0) {
             coinManager.addCoins(coins)
-            Toast.makeText(this, "Purchase Successful: +$coins coins", Toast.LENGTH_SHORT).show()
+            val itemCount = purchasedProducts.count { !it.isSubscriptionProductId() }
+            val itemLabel = if (itemCount > 1) "$itemCount items" else "1 item"
+            Toast.makeText(this, "Purchase Successful: +$coins coins from $itemLabel", Toast.LENGTH_SHORT).show()
         }
 
         // Mark the purchased item as consumed to allow repurchase
         purchaseManager.consumePurchase(purchase)
     }
 
+    private fun String.isSubscriptionProductId(): Boolean {
+        return this == PREMIUM_MONTHLY_SUBSCRIPTION_ID ||
+            this == PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID ||
+            this == PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID ||
+            this == PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID
+    }
+
+    private fun List<ProductDetails?>?.canShowSubscriptionAddOns(): Boolean {
+        if (productGroup == PRODUCT_GROUP_COINS) {
+            return false
+        }
+        val ids = this?.filterNotNull()?.map { it.productId }?.toSet().orEmpty()
+        return ids.contains(PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID) &&
+            ids.contains(PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID) &&
+            ids.contains(PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID)
+    }
+
     override fun onPurchaseFailed(billingResult: BillingResult?, errorMessage: String?) {
-        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+        val message = errorMessage ?: "Purchase failed. Please try again."
+        binding.purchaseStatus.visibility = View.VISIBLE
+        binding.purchaseStatus.text = message
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onPurchasePending(purchase: Purchase?) {
@@ -89,5 +164,35 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
 
     override fun onPurchaseCanceled() {
         Toast.makeText(this, "Purchase Canceled", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun configureScreenForProductGroup() {
+        when (productGroup) {
+            PRODUCT_GROUP_PREMIUM -> {
+                binding.toolbarTitle.text = "Premium Features"
+                binding.screenTitle.text = "Premium Subscriptions"
+                binding.screenSubtitle.text = "Choose one tier, or buy Basic + Plus + Pro together as add-ons."
+                binding.purchaseStatus.text = "Loading premium subscriptions..."
+            }
+            PRODUCT_GROUP_BUNDLE -> {
+                binding.toolbarTitle.text = "Bundles"
+                binding.screenTitle.text = "Bundles"
+                binding.screenSubtitle.text = "Use one checkout for bundled coins, or one checkout for all premium add-ons."
+                binding.purchaseStatus.text = "Loading bundle offers..."
+            }
+            else -> {
+                binding.toolbarTitle.text = "Purchase Coins"
+                binding.screenTitle.text = "One-Time Coin Packs"
+                binding.screenSubtitle.text = "Each pack unlocks coins immediately. Buy again anytime."
+                binding.purchaseStatus.text = "Loading coin products..."
+            }
+        }
+    }
+
+    companion object {
+        const val EXTRA_PRODUCT_GROUP = "extra_product_group"
+        const val PRODUCT_GROUP_COINS = "coins"
+        const val PRODUCT_GROUP_PREMIUM = "premium"
+        const val PRODUCT_GROUP_BUNDLE = "bundle"
     }
 }

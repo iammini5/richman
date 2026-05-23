@@ -53,7 +53,7 @@
                     android:layout_marginStart="8dp"
                     android:text="0"
                     android:textColor="#FFFFFF"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
@@ -85,7 +85,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="156dp"
                 android:orientation="horizontal">
 
                 <androidx.cardview.widget.CardView
@@ -94,12 +94,12 @@
                     android:layout_height="match_parent"
                     android:layout_margin="8dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#9C27B0"
+                    android:backgroundTint="@color/richman_green"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp">
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="2dp">
 
                     <androidx.appcompat.widget.LinearLayoutCompat
                         android:layout_width="match_parent"
@@ -108,8 +108,8 @@
                         android:orientation="vertical">
 
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:contentDescription="@null"
                             android:src="@android:drawable/ic_menu_add"
                             app:tint="#FFFFFF" />
@@ -120,7 +120,7 @@
                             android:layout_marginTop="8dp"
                             android:text="Buy Coins"
                             android:textColor="#FFFFFF"
-                            android:textSize="16sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </androidx.appcompat.widget.LinearLayoutCompat>
                 </androidx.cardview.widget.CardView>
@@ -131,12 +131,12 @@
                     android:layout_height="match_parent"
                     android:layout_margin="8dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#D32F2F"
+                    android:backgroundTint="@color/richman_clay"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp">
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="2dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -146,8 +146,8 @@
                         tools:ignore="UseCompoundDrawables">
 
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:contentDescription="@null"
                             android:src="@android:drawable/ic_menu_close_clear_cancel"
                             app:tint="#FFFFFF" />
@@ -158,7 +158,7 @@
                             android:layout_marginTop="8dp"
                             android:text="Remove Ads"
                             android:textColor="#FFFFFF"
-                            android:textSize="16sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -166,7 +166,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="156dp"
                 android:orientation="horizontal">
 
                 <androidx.cardview.widget.CardView
@@ -175,12 +175,12 @@
                     android:layout_height="match_parent"
                     android:layout_margin="8dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#00796B"
+                    android:backgroundTint="@color/richman_teal"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp">
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="2dp">
 
                     <androidx.appcompat.widget.LinearLayoutCompat
                         android:layout_width="match_parent"
@@ -189,8 +189,8 @@
                         android:orientation="vertical">
 
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:importantForAccessibility="no"
                             android:src="@android:drawable/ic_menu_info_details"
                             app:tint="#FFFFFF" />
@@ -201,7 +201,7 @@
                             android:layout_marginTop="8dp"
                             android:text="Premium Features"
                             android:textColor="#FFFFFF"
-                            android:textSize="16sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </androidx.appcompat.widget.LinearLayoutCompat>
                 </androidx.cardview.widget.CardView>
@@ -212,12 +212,12 @@
                     android:layout_height="match_parent"
                     android:layout_margin="8dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#1976D2"
+                    android:backgroundTint="@color/richman_blue"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp">
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="2dp">
 
                     <androidx.appcompat.widget.LinearLayoutCompat
                         android:layout_width="match_parent"
@@ -226,8 +226,8 @@
                         android:orientation="vertical">
 
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:importantForAccessibility="no"
                             android:src="@android:drawable/ic_menu_more"
                             app:tint="#FFFFFF" />
@@ -238,7 +238,7 @@
                             android:layout_marginTop="8dp"
                             android:text="More"
                             android:textColor="#FFFFFF"
-                            android:textSize="16sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </androidx.appcompat.widget.LinearLayoutCompat>
                 </androidx.cardview.widget.CardView>

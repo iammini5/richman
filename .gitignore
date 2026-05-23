@@ -5,6 +5,7 @@
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
+/.idea/vcs.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
@@ -13,3 +14,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+play-service-account*.json
+service-account*.json
+android-publisher*.json
