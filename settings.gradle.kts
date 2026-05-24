@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Rich Man"
 include(":app")
+include(":backend")
