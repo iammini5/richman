@@ -3,6 +3,7 @@
 ## Project Planning
 
 - [Play Purchase Sync Backend PRD and Design](PLAY_PURCHASE_SYNC_PRD_AND_DESIGN.md)
+- [Backend Deployment Guide](DEPLOY_BACKEND.md)
 
 ## Weekly Changes
 

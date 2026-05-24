@@ -1,0 +1,13 @@
+.git
+.gradle
+.gradle-user-home
+.idea
+.kotlin
+**/build
+**/.DS_Store
+local.properties
+service-account*.json
+play-service-account*.json
+android-publisher*.json
+keystores
+play-listing-assets
