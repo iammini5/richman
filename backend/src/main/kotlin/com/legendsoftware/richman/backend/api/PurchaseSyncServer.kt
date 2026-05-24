@@ -5,6 +5,7 @@ import com.legendsoftware.richman.backend.model.PurchaseSyncRequest
 import com.legendsoftware.richman.backend.model.PurchaseType
 import com.legendsoftware.richman.backend.service.EntitlementService
 import com.legendsoftware.richman.backend.service.PurchaseSyncService
+import com.legendsoftware.richman.backend.service.RtdnService
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import java.net.InetSocketAddress
@@ -14,6 +15,7 @@ class PurchaseSyncServer(
     private val port: Int,
     private val purchaseSyncService: PurchaseSyncService,
     private val entitlementService: EntitlementService,
+    private val rtdnService: RtdnService,
 ) {
     private val server: HttpServer = HttpServer.create(InetSocketAddress(port), 0)
 
@@ -40,6 +42,20 @@ class PurchaseSyncServer(
                 val body = exchange.requestBody.bufferedReader().use { it.readText() }
                 val response = purchaseSyncService.sync(JsonCodec.parsePurchaseSyncRequest(body))
                 exchange.respond(200, JsonCodec.entitlementResponse("verified", response.entitlements))
+            }.onFailure {
+                exchange.respond(400, """{"error":"${it.message?.jsonEscape() ?: "bad_request"}"}""")
+            }
+        }
+        server.createContext("/v1/play/notifications") { exchange ->
+            if (exchange.requestMethod != "POST") {
+                exchange.respond(405, """{"error":"method_not_allowed"}""")
+                return@createContext
+            }
+
+            runCatching {
+                val body = exchange.requestBody.bufferedReader().use { it.readText() }
+                val result = rtdnService.processPubSubPush(body)
+                exchange.respond(200, """{"status":"${result.status.name.lowercase()}"}""")
             }.onFailure {
                 exchange.respond(400, """{"error":"${it.message?.jsonEscape() ?: "bad_request"}"}""")
             }

@@ -8,6 +8,7 @@ import com.legendsoftware.richman.backend.model.EntitlementState
 import com.legendsoftware.richman.backend.model.EntitlementType
 import com.legendsoftware.richman.backend.model.PremiumState
 import com.legendsoftware.richman.backend.model.PurchaseRecord
+import com.legendsoftware.richman.backend.model.PurchaseState
 import com.legendsoftware.richman.backend.store.PurchaseRepository
 
 class EntitlementService(
@@ -68,11 +69,19 @@ class EntitlementService(
     fun snapshotForUser(userId: String): EntitlementSnapshot {
         val entries = repository.ledgerForUser(userId)
         val coins = entries
-            .filter { it.type == EntitlementType.COINS && it.state == EntitlementState.GRANTED }
+            .filter {
+                it.type == EntitlementType.COINS &&
+                    it.state == EntitlementState.GRANTED &&
+                    repository.purchaseById(it.purchaseId)?.state == PurchaseState.PURCHASED
+            }
             .sumOf { it.amount }
 
         val activePremium = entries
-            .filter { it.type == EntitlementType.PREMIUM && it.state == EntitlementState.ACTIVE }
+            .filter {
+                it.type == EntitlementType.PREMIUM &&
+                    it.state == EntitlementState.ACTIVE &&
+                    repository.purchaseById(it.purchaseId)?.state == PurchaseState.PURCHASED
+            }
             .maxByOrNull { it.amount }
 
         val premiumRecord = activePremium?.let { repository.purchaseById(it.purchaseId) }

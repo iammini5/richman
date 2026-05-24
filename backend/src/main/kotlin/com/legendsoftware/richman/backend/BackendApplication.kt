@@ -15,6 +15,7 @@ fun main() {
         port = port,
         purchaseSyncService = service.purchaseSyncService,
         entitlementService = service.entitlementService,
+        rtdnService = service.rtdnService,
     )
 
     server.start()

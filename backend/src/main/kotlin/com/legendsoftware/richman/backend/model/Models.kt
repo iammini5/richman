@@ -70,6 +70,19 @@ data class EntitlementLedgerEntry(
     val createdAt: Instant = Instant.now(),
 )
 
+data class RtdnEvent(
+    val id: UUID = UUID.randomUUID(),
+    val messageId: String?,
+    val packageName: String,
+    val eventType: RtdnEventType,
+    val purchaseTokenHash: String?,
+    val productId: String?,
+    val notificationType: Int?,
+    val status: RtdnProcessingStatus,
+    val rawPayload: String,
+    val createdAt: Instant = Instant.now(),
+)
+
 enum class PurchaseType {
     ONE_TIME,
     SUBSCRIPTION,
@@ -112,4 +125,18 @@ enum class SyncStatus {
     VERIFIED,
     PENDING,
     REJECTED,
+}
+
+enum class RtdnEventType {
+    SUBSCRIPTION,
+    ONE_TIME_PRODUCT,
+    VOIDED_PURCHASE,
+    TEST,
+    UNKNOWN,
+}
+
+enum class RtdnProcessingStatus {
+    PROCESSED,
+    RECORDED_ONLY,
+    DUPLICATE,
 }
