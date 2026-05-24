@@ -5,6 +5,7 @@ SERVICE_NAME="${SERVICE_NAME:-richman-backend}"
 REGION="${REGION:-us-west1}"
 PROJECT_ID="${PROJECT_ID:-}"
 ALLOW_UNVERIFIED_PLAY_PURCHASES="${ALLOW_UNVERIFIED_PLAY_PURCHASES:-false}"
+ALLOW_UNAUTHENTICATED="${ALLOW_UNAUTHENTICATED:-false}"
 
 if [[ -z "$PROJECT_ID" ]]; then
   echo "PROJECT_ID is required."
@@ -23,11 +24,16 @@ gcloud services enable \
   androidpublisher.googleapis.com \
   --project "$PROJECT_ID"
 
+AUTH_FLAG="--no-allow-unauthenticated"
+if [[ "$ALLOW_UNAUTHENTICATED" == "true" ]]; then
+  AUTH_FLAG="--allow-unauthenticated"
+fi
+
 gcloud run deploy "$SERVICE_NAME" \
   --source . \
   --project "$PROJECT_ID" \
   --region "$REGION" \
-  --allow-unauthenticated \
+  "$AUTH_FLAG" \
   --set-env-vars "RICHMAN_ALLOW_UNVERIFIED_PLAY_PURCHASES=$ALLOW_UNVERIFIED_PLAY_PURCHASES" \
   --quiet
 

@@ -6,6 +6,16 @@ Use Google Cloud Run for the backend service. It gives the app an HTTPS endpoint
 
 ## Current Deployment State
 
+Cloud Run service:
+
+```text
+Project: api-6551333220726747549-208518
+Region: us-west1
+Service: richman-backend
+URL: https://richman-backend-kfy6nq5mia-uw.a.run.app
+Access: authenticated
+```
+
 The backend can be deployed as a Cloud Run service, but it is still an MVP:
 
 - Persistence is in-memory only.
@@ -37,7 +47,15 @@ From the repo root:
 PROJECT_ID=YOUR_PROJECT_ID REGION=us-west1 ./scripts/deploy-backend-cloud-run.sh
 ```
 
-The script enables required APIs and deploys `richman-backend` from source.
+The script enables required APIs and deploys `richman-backend` from source. By default, the Cloud Run service is authenticated and not public.
+
+This repo includes `.gcloudignore` so Cloud Run source deployment does not upload local Gradle caches or generated build output.
+
+If you intentionally want a public HTTPS endpoint, set:
+
+```sh
+ALLOW_UNAUTHENTICATED=true
+```
 
 For temporary closed-testing smoke tests only, you can allow mock purchase verification:
 
@@ -45,6 +63,7 @@ For temporary closed-testing smoke tests only, you can allow mock purchase verif
 PROJECT_ID=YOUR_PROJECT_ID \
 REGION=us-west1 \
 ALLOW_UNVERIFIED_PLAY_PURCHASES=true \
+ALLOW_UNAUTHENTICATED=true \
 ./scripts/deploy-backend-cloud-run.sh
 ```
 
