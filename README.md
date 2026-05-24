@@ -1,5 +1,9 @@
 # Richman
 
+## Project Planning
+
+- [Play Purchase Sync Backend PRD and Design](PLAY_PURCHASE_SYNC_PRD_AND_DESIGN.md)
+
 ## Weekly Changes
 
 This README is the home for weekly Richman project change notes.
