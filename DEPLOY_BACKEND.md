@@ -93,6 +93,8 @@ After Cloud Run is deployed, create the Pub/Sub topic and push subscription:
 ```sh
 PROJECT_ID=YOUR_PROJECT_ID \
 SERVICE_URL=https://YOUR_CLOUD_RUN_URL \
+CLOUD_RUN_SERVICE=richman-backend \
+CLOUD_RUN_REGION=us-west1 \
 ./scripts/setup-rtdn-pubsub.sh
 ```
 
@@ -102,11 +104,21 @@ The script prints a topic name like:
 projects/YOUR_PROJECT_ID/topics/richman-play-rtdn
 ```
 
+It also grants Google Play permission to publish RTDN messages to the topic through:
+
+```text
+google-play-developer-notifications@system.gserviceaccount.com
+```
+
+For private Cloud Run services, the script also creates or updates the Pub/Sub push service account and grants it Cloud Run invoker access.
+
 Configure that topic in Play Console:
 
 ```text
 Play Console > Monetization setup > Real-time developer notifications
 ```
+
+Enable real-time notifications and choose `Subscriptions, voided purchases, and all one-time products` if one-time products should trigger backend syncs.
 
 ## Environment Variables
 
