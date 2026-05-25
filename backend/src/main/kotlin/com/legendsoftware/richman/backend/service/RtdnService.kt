@@ -11,6 +11,7 @@ import com.legendsoftware.richman.backend.store.PurchaseRepository
 import com.legendsoftware.richman.backend.util.sha256
 import java.time.Instant
 import java.util.Base64
+import java.util.UUID
 
 class RtdnService(
     private val repository: PurchaseRepository,
@@ -38,10 +39,15 @@ class RtdnService(
             repository.updatePurchaseStateByTokenHash(tokenHash, PurchaseState.CANCELED)
         }
 
-        val canReverify = existingPurchase != null &&
+        val canReverifyExisting = existingPurchase != null &&
             eventType != RtdnEventType.TEST &&
             eventType != RtdnEventType.UNKNOWN &&
             eventType != RtdnEventType.VOIDED_PURCHASE
+        val canVerifyUnknown = existingPurchase == null &&
+            notification.purchaseToken != null &&
+            notification.productId != null &&
+            (eventType == RtdnEventType.ONE_TIME_PRODUCT || eventType == RtdnEventType.SUBSCRIPTION)
+        val canReverify = canReverifyExisting || canVerifyUnknown
 
         PurchaseEventLogger.logRtdnReceived(
             notification = notification,
@@ -60,7 +66,7 @@ class RtdnService(
             }
             purchaseSyncService.sync(
                 PurchaseSyncRequest(
-                    userId = existingPurchase!!.userId,
+                    userId = existingPurchase?.userId ?: FALLBACK_RTDN_USER_ID,
                     packageName = notification.packageName,
                     purchaseType = purchaseType,
                     productIds = listOf(productId),
@@ -92,6 +98,11 @@ class RtdnService(
         PurchaseEventLogger.logRtdnStored(event)
 
         return RtdnProcessResult(status, event)
+    }
+
+    companion object {
+        val FALLBACK_RTDN_USER_ID: String =
+            UUID.nameUUIDFromBytes(RICHMAN_PACKAGE_NAME.toByteArray(Charsets.UTF_8)).toString()
     }
 }
 

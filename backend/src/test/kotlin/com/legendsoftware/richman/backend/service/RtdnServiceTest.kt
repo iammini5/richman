@@ -92,8 +92,32 @@ class RtdnServiceTest {
         val first = services.rtdnService.processPubSubPush(body)
         val second = services.rtdnService.processPubSubPush(body)
 
-        assertEquals(RtdnProcessingStatus.RECORDED_ONLY, first.status)
+        assertEquals(RtdnProcessingStatus.PROCESSED, first.status)
         assertEquals(RtdnProcessingStatus.DUPLICATE, second.status)
+    }
+
+    @Test
+    fun `unknown one-time product notification verifies and grants fallback user`() {
+        val verifier = CountingVerifier()
+        val services = RichmanBackendFactory.create(
+            repository = InMemoryPurchaseRepository(),
+            verifier = verifier,
+        )
+
+        val result = services.rtdnService.processPubSubPush(
+            pubSubPush(
+                messageId = "message-unknown-one-time",
+                decodedPayload = oneTimeProductPayload(
+                    purchaseToken = "unknown-token",
+                    productId = "com.legendsoftware.richman.coins.50",
+                ),
+            )
+        )
+        val snapshot = services.entitlementService.snapshotForUser(RtdnService.FALLBACK_RTDN_USER_ID)
+
+        assertEquals(RtdnProcessingStatus.PROCESSED, result.status)
+        assertEquals(1, verifier.verifyCount)
+        assertEquals(50, snapshot.coins)
     }
 
     private fun syncRequest(
