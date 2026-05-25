@@ -33,10 +33,12 @@ class PurchaseSyncService(
             require(verified.packageName == request.packageName) { "Verified package does not match request" }
             require(verified.productId == productId) { "Verified product does not match request" }
 
+            var acknowledgedByBackend = false
             if (verified.state == PurchaseState.PURCHASED &&
                 verified.acknowledgementState == AcknowledgementState.NOT_ACKNOWLEDGED
             ) {
                 verifier.acknowledge(verified)
+                acknowledgedByBackend = true
             }
 
             val record = PurchaseRecord(
@@ -54,6 +56,13 @@ class PurchaseSyncService(
                 rawResponse = verified.rawResponse,
             )
             val saved = repository.upsertPurchase(record)
+            PurchaseEventLogger.logVerifiedPurchase(
+                source = request.appVersion?.takeIf { it == "rtdn" } ?: "app_sync",
+                request = request,
+                verified = verified,
+                saved = saved,
+                acknowledged = acknowledgedByBackend,
+            )
 
             if (saved.state == PurchaseState.PURCHASED) {
                 entitlementService.grantForPurchase(saved)

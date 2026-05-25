@@ -19,6 +19,7 @@ class RtdnService(
     fun processPubSubPush(body: String): RtdnProcessResult {
         val messageId = RtdnJson.string("messageId", body)
         if (messageId != null && repository.hasRtdnMessage(messageId)) {
+            PurchaseEventLogger.logDuplicateRtdn(messageId)
             return RtdnProcessResult(RtdnProcessingStatus.DUPLICATE, null)
         }
 
@@ -41,6 +42,14 @@ class RtdnService(
             eventType != RtdnEventType.TEST &&
             eventType != RtdnEventType.UNKNOWN &&
             eventType != RtdnEventType.VOIDED_PURCHASE
+
+        PurchaseEventLogger.logRtdnReceived(
+            notification = notification,
+            messageId = messageId,
+            tokenHash = tokenHash,
+            hasExistingPurchase = existingPurchase != null,
+            willReverify = canReverify,
+        )
 
         if (canReverify) {
             val productId = notification.productId ?: existingPurchase!!.productId
@@ -80,6 +89,7 @@ class RtdnService(
                 rawPayload = decoded,
             )
         )
+        PurchaseEventLogger.logRtdnStored(event)
 
         return RtdnProcessResult(status, event)
     }
