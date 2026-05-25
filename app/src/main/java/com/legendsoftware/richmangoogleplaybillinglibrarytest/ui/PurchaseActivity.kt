@@ -61,7 +61,9 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
 
         binding.inAppProducts.layoutManager = LinearLayoutManager(this)
         binding.inAppProducts.adapter = adapter
-        binding.btnSubscriptionAddOns.visibility = View.GONE
+        binding.btnSubscriptionAddOns.setOnClickListener {
+            purchaseManager.launchPremiumSubscriptionAddOns()
+        }
 
         coinManager.coins.observe(this) { coins ->
             binding.coins.text = coins.toString()
@@ -78,13 +80,15 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
                 when (productGroup) {
                     PRODUCT_GROUP_PREMIUM -> isSubscription
                     PRODUCT_GROUP_BUNDLE -> productDetails.productId == STARTER_BUNDLE_PRODUCT_ID
-                    else -> !isSubscription
+                    else -> !isSubscription && productDetails.productId != STARTER_BUNDLE_PRODUCT_ID
                 }
             } ?: emptyList()
+        val canShowPremiumBundle = productGroup == PRODUCT_GROUP_BUNDLE &&
+            productDetailsList.hasPremiumSubscriptionAddOns()
 
         adapter.setProducts(safeList)
-        binding.btnSubscriptionAddOns.visibility = View.GONE
-        if (safeList.isEmpty()) {
+        binding.btnSubscriptionAddOns.visibility = if (canShowPremiumBundle) View.VISIBLE else View.GONE
+        if (safeList.isEmpty() && !canShowPremiumBundle) {
             binding.purchaseStatus.visibility = View.VISIBLE
             binding.purchaseStatus.text = when (productGroup) {
                 PRODUCT_GROUP_PREMIUM -> "Premium subscription is not available yet. Please install from Google Play with a tester account and try again later."
@@ -158,6 +162,18 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
             this == PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID
     }
 
+    private fun List<ProductDetails?>?.hasPremiumSubscriptionAddOns(): Boolean {
+        val productIds = this
+            ?.filterNotNull()
+            ?.filter { !it.subscriptionOfferDetails.isNullOrEmpty() }
+            ?.map { it.productId }
+            ?.toSet()
+            .orEmpty()
+        return productIds.contains(PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID) &&
+            productIds.contains(PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID) &&
+            productIds.contains(PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID)
+    }
+
     override fun onPurchaseFailed(billingResult: BillingResult?, errorMessage: String?) {
         val message = errorMessage ?: "Purchase failed. Please try again."
         binding.purchaseStatus.visibility = View.VISIBLE
@@ -178,7 +194,7 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
             PRODUCT_GROUP_PREMIUM -> {
                 binding.toolbarTitle.text = "Premium Features"
                 binding.screenTitle.text = "Premium Subscriptions"
-                binding.screenSubtitle.text = "Choose one tier, or buy Basic + Plus + Pro together as add-ons."
+                binding.screenSubtitle.text = "Choose one premium tier."
                 binding.purchaseStatus.text = "Loading premium subscriptions..."
             }
             PRODUCT_GROUP_BUNDLE -> {

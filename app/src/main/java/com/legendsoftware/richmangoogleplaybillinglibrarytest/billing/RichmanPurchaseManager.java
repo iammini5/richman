@@ -228,6 +228,10 @@ public class RichmanPurchaseManager {
         launchMultiProductPurchase(STARTER_MULTI_PRODUCT_BUNDLE_IDS);
     }
 
+    public void launchPremiumSubscriptionAddOns() {
+        launchSubscriptionAddOns(PREMIUM_SUBSCRIPTION_ADD_ON_IDS);
+    }
+
     public void launchMultiProductPurchase(List<String> productIds) {
         if (billingClient == null || !billingClient.isReady()) return;
 

@@ -1,1 +1,1 @@
-Removes duplicated premium purchase options and keeps product lists unique.
+Moves all bundle purchases into the More menu and keeps purchase lists unique.
