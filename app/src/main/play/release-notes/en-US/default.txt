@@ -1,0 +1,1 @@
+Adds backend purchase verification and sync for Google Play purchases.
