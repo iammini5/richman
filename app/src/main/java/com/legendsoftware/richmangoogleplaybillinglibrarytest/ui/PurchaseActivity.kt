@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.backend.PurchaseSyncClient
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.adapter.PurchaseProductAdapter
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.PurchaseUpdateListener
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager
@@ -31,6 +32,7 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
     private lateinit var binding: ActivityPurchaseBinding
     private val coinManager: CoinManagerViewModel by viewModels()
     private lateinit var purchaseManager: RichmanPurchaseManager
+    private val purchaseSyncClient = PurchaseSyncClient()
     private lateinit var adapter: PurchaseProductAdapter
     private val productGroup: String
         get() = intent.getStringExtra(EXTRA_PRODUCT_GROUP) ?: PRODUCT_GROUP_COINS
@@ -107,6 +109,26 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
 
 
     override fun onPurchaseSuccess(purchase: Purchase?) {
+        if (purchase == null) {
+            Toast.makeText(this, "Purchase missing receipt. Please try again.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        Thread {
+            val result = purchaseSyncClient.syncPurchase(purchase)
+            runOnUiThread {
+                result.onSuccess {
+                    fulfillVerifiedPurchase(purchase)
+                }.onFailure {
+                    binding.purchaseStatus.visibility = View.VISIBLE
+                    binding.purchaseStatus.text = "Purchase verification failed. Please try again."
+                    Toast.makeText(this, "Purchase verification failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
+    private fun fulfillVerifiedPurchase(purchase: Purchase) {
         val purchasedProducts = purchase?.products.orEmpty()
         if (purchasedProducts.any { it.isSubscriptionProductId() }) {
             Toast.makeText(this, "Subscription active", Toast.LENGTH_SHORT).show()

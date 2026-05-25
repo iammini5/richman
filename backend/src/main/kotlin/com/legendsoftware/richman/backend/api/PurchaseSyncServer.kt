@@ -18,6 +18,7 @@ class PurchaseSyncServer(
     private val rtdnService: RtdnService,
 ) {
     private val server: HttpServer = HttpServer.create(InetSocketAddress(port), 0)
+    private val appApiKey: String? = System.getenv("RICHMAN_APP_API_KEY")?.trim()?.takeIf { it.isNotBlank() }
 
     fun start() {
         server.createContext("/health") { exchange ->
@@ -35,6 +36,10 @@ class PurchaseSyncServer(
         server.createContext("/v1/play/purchases:sync") { exchange ->
             if (exchange.requestMethod != "POST") {
                 exchange.respond(405, """{"error":"method_not_allowed"}""")
+                return@createContext
+            }
+            if (!exchange.hasValidAppApiKey()) {
+                exchange.respond(401, """{"error":"unauthorized"}""")
                 return@createContext
             }
 
@@ -83,6 +88,11 @@ class PurchaseSyncServer(
             exchange.respond(200, JsonCodec.entitlements(entitlementService.snapshotForUser(userId)))
         }
         server.start()
+    }
+
+    private fun HttpExchange.hasValidAppApiKey(): Boolean {
+        val configuredKey = appApiKey ?: return true
+        return requestHeaders.getFirst("X-Richman-Api-Key") == configuredKey
     }
 }
 

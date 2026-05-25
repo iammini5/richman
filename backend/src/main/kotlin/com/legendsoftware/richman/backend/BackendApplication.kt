@@ -1,7 +1,7 @@
 package com.legendsoftware.richman.backend
 
 import com.legendsoftware.richman.backend.api.PurchaseSyncServer
-import com.legendsoftware.richman.backend.play.EnvironmentPlayPurchaseVerifier
+import com.legendsoftware.richman.backend.play.GooglePlayPurchaseVerifier
 import com.legendsoftware.richman.backend.store.InMemoryPurchaseRepository
 
 fun main() {
@@ -9,7 +9,7 @@ fun main() {
     val repository = InMemoryPurchaseRepository()
     val service = RichmanBackendFactory.create(
         repository = repository,
-        verifier = EnvironmentPlayPurchaseVerifier(),
+        verifier = GooglePlayPurchaseVerifier.fromEnvironment(),
     )
     val server = PurchaseSyncServer(
         port = port,

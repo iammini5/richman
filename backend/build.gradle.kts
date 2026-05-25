@@ -19,6 +19,10 @@ java {
 }
 
 dependencies {
+    implementation(libs.google.api.services.androidpublisher)
+    implementation(libs.google.auth.library.oauth2.http)
+    implementation(libs.google.http.client.gson)
+
     testImplementation(libs.junit)
 }
 

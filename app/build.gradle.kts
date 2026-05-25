@@ -34,6 +34,8 @@ android {
         versionName = "1.6.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "RICHMAN_BACKEND_URL", "\"${localProperties.getProperty("RICHMAN_BACKEND_URL") ?: "https://richman-backend-kfy6nq5mia-uw.a.run.app"}\"")
+        buildConfigField("String", "RICHMAN_BACKEND_API_KEY", "\"${localProperties.getProperty("RICHMAN_BACKEND_API_KEY") ?: ""}\"")
     }
 
     signingConfigs {
@@ -71,6 +73,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

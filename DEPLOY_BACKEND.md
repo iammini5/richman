@@ -25,6 +25,19 @@ The backend can be deployed as a Cloud Run service, but it is still an MVP:
 
 For a real production release, do not enable `RICHMAN_ALLOW_UNVERIFIED_PLAY_PURCHASES`.
 
+The Google Play service account used for purchase verification is:
+
+```text
+iammini5@api-6551333220726747549-208518.iam.gserviceaccount.com
+```
+
+In Play Console, grant this service account the billing API permissions documented by Google:
+
+- View financial data, orders, and cancellation survey responses
+- Manage orders and subscriptions
+
+Google documents these permissions as required for Google Play Billing API access.
+
 ## Prerequisites
 
 - Google Cloud project with billing enabled.
@@ -99,12 +112,37 @@ Play Console > Monetization setup > Real-time developer notifications
 
 - `PORT`: set by Cloud Run automatically.
 - `RICHMAN_ALLOW_UNVERIFIED_PLAY_PURCHASES`: use `false` for production.
-- Future: Google Play credential and database variables will be added when the production verifier and database repository are implemented.
+- `PLAY_SERVICE_ACCOUNT_JSON`: Secret Manager value containing the Play service account JSON.
+- `RICHMAN_APP_API_KEY`: Secret Manager value required by the Android app in `X-Richman-Api-Key`.
+
+## Production Verification Deploy
+
+Create secrets:
+
+```sh
+gcloud secrets create richman-play-service-account-json \
+  --project YOUR_PROJECT_ID \
+  --data-file service-account.json
+
+printf 'YOUR_APP_API_KEY' | gcloud secrets create richman-app-api-key \
+  --project YOUR_PROJECT_ID \
+  --data-file -
+```
+
+Deploy with real Google Play verification:
+
+```sh
+PROJECT_ID=YOUR_PROJECT_ID \
+REGION=us-west1 \
+PLAY_SERVICE_ACCOUNT_SECRET=richman-play-service-account-json \
+RICHMAN_APP_API_KEY_SECRET=richman-app-api-key \
+ALLOW_UNAUTHENTICATED=true \
+./scripts/deploy-backend-cloud-run.sh
+```
 
 ## Next Production Steps
 
 1. Add durable PostgreSQL storage.
-2. Add Google Play Developer API verification.
-3. Store Google credentials in Secret Manager.
-4. Add app authentication for purchase sync.
-5. Add authenticated Pub/Sub push handling.
+2. Add stronger app authentication for purchase sync.
+3. Add Pub/Sub push authentication.
+4. Move entitlement storage from memory to PostgreSQL.

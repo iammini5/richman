@@ -15,6 +15,9 @@ activity = "1.12.3"
 constraintlayout = "2.2.1"
 playServicesAds = "24.9.0"
 playPublisher = "3.12.1"
+androidPublisherApi = "v3-rev20260519-2.0.0"
+googleAuth = "1.43.0"
+googleHttpClient = "2.0.1"
 
 
 [libraries]
@@ -32,6 +35,9 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
+google-api-services-androidpublisher = { module = "com.google.apis:google-api-services-androidpublisher", version.ref = "androidPublisherApi" }
+google-auth-library-oauth2-http = { module = "com.google.auth:google-auth-library-oauth2-http", version.ref = "googleAuth" }
+google-http-client-gson = { module = "com.google.http-client:google-http-client-gson", version.ref = "googleHttpClient" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
