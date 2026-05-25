@@ -1,1 +1,1 @@
-Adds backend purchase verification and sync for Google Play purchases.
+Removes duplicated premium purchase options and keeps product lists unique.

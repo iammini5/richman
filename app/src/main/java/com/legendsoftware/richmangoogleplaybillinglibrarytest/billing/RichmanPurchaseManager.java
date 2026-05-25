@@ -153,7 +153,7 @@ public class RichmanPurchaseManager {
     }
 
     private void updateLoadedProducts(List<ProductDetails> products) {
-        List<ProductDetails> sortedProducts = sortProductsByPriceSequence(products);
+        List<ProductDetails> sortedProducts = sortProductsByPriceSequence(deduplicateProducts(products));
         productDetailsList.clear();
         productDetailsList.addAll(sortedProducts);
 
@@ -201,6 +201,14 @@ public class RichmanPurchaseManager {
         return Long.MAX_VALUE;
     }
 
+    private List<ProductDetails> deduplicateProducts(List<ProductDetails> products) {
+        Map<String, ProductDetails> uniqueProducts = new HashMap<>();
+        for (ProductDetails product : products) {
+            uniqueProducts.putIfAbsent(product.getProductId(), product);
+        }
+        return new ArrayList<>(uniqueProducts.values());
+    }
+
     public void launchPurchase(String productId) {
         if (billingClient == null || !billingClient.isReady()) return;
         ProductDetails productDetails = productDetailsMap.get(productId);
@@ -218,10 +226,6 @@ public class RichmanPurchaseManager {
 
     public void launchStarterMultiProductBundle() {
         launchMultiProductPurchase(STARTER_MULTI_PRODUCT_BUNDLE_IDS);
-    }
-
-    public void launchPremiumSubscriptionAddOns() {
-        launchSubscriptionAddOns(PREMIUM_SUBSCRIPTION_ADD_ON_IDS);
     }
 
     public void launchMultiProductPurchase(List<String> productIds) {

@@ -21,8 +21,8 @@ import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPur
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.COINS_500_PRODUCT_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.COINS_50_PRODUCT_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID
-import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_MONTHLY_SUBSCRIPTION_ID
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.STARTER_BUNDLE_PRODUCT_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.databinding.ActivityPurchaseBinding
@@ -61,9 +61,7 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
 
         binding.inAppProducts.layoutManager = LinearLayoutManager(this)
         binding.inAppProducts.adapter = adapter
-        binding.btnSubscriptionAddOns.setOnClickListener {
-            purchaseManager.launchPremiumSubscriptionAddOns()
-        }
+        binding.btnSubscriptionAddOns.visibility = View.GONE
 
         coinManager.coins.observe(this) { coins ->
             binding.coins.text = coins.toString()
@@ -74,6 +72,7 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
     override fun onProductsLoaded(productDetailsList: List<ProductDetails?>?) {
         val safeList = productDetailsList
             ?.filterNotNull()
+            ?.distinctBy { it.productId }
             ?.filter { productDetails ->
                 val isSubscription = !productDetails.subscriptionOfferDetails.isNullOrEmpty()
                 when (productGroup) {
@@ -84,11 +83,7 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
             } ?: emptyList()
 
         adapter.setProducts(safeList)
-        binding.btnSubscriptionAddOns.visibility = if (productDetailsList.canShowSubscriptionAddOns()) {
-            View.VISIBLE
-        } else {
-            View.GONE
-        }
+        binding.btnSubscriptionAddOns.visibility = View.GONE
         if (safeList.isEmpty()) {
             binding.purchaseStatus.visibility = View.VISIBLE
             binding.purchaseStatus.text = when (productGroup) {
@@ -161,16 +156,6 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
             this == PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID ||
             this == PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID ||
             this == PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID
-    }
-
-    private fun List<ProductDetails?>?.canShowSubscriptionAddOns(): Boolean {
-        if (productGroup == PRODUCT_GROUP_COINS) {
-            return false
-        }
-        val ids = this?.filterNotNull()?.map { it.productId }?.toSet().orEmpty()
-        return ids.contains(PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID) &&
-            ids.contains(PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID) &&
-            ids.contains(PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID)
     }
 
     override fun onPurchaseFailed(billingResult: BillingResult?, errorMessage: String?) {
