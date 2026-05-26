@@ -20,10 +20,6 @@ import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPur
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.COINS_200_PRODUCT_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.COINS_500_PRODUCT_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.COINS_50_PRODUCT_ID
-import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID
-import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_MONTHLY_SUBSCRIPTION_ID
-import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID
-import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager.STARTER_BUNDLE_PRODUCT_ID
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.databinding.ActivityPurchaseBinding
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.viewmodel.CoinManagerViewModel
@@ -35,7 +31,7 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
     private val purchaseSyncClient = PurchaseSyncClient()
     private lateinit var adapter: PurchaseProductAdapter
     private val productGroup: String
-        get() = intent.getStringExtra(EXTRA_PRODUCT_GROUP) ?: PRODUCT_GROUP_COINS
+        get() = intent.getStringExtra(PurchaseProductGroups.EXTRA_PRODUCT_GROUP) ?: PurchaseProductGroups.COINS
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +48,7 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
         purchaseManager = RichmanPurchaseManager(this, this)
 
         adapter = PurchaseProductAdapter(emptyList()) { productDetails ->
-            if (productGroup == PRODUCT_GROUP_BUNDLE && productDetails.productId == STARTER_BUNDLE_PRODUCT_ID) {
+            if (productGroup == PurchaseProductGroups.BUNDLE && productDetails.productId == STARTER_BUNDLE_PRODUCT_ID) {
                 purchaseManager.launchStarterMultiProductBundle()
             } else {
                 purchaseManager.launchPurchase(productDetails.productId)
@@ -72,27 +68,19 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
     }
 
     override fun onProductsLoaded(productDetailsList: List<ProductDetails?>?) {
-        val safeList = productDetailsList
-            ?.filterNotNull()
-            ?.distinctBy { it.productId }
-            ?.filter { productDetails ->
-                val isSubscription = !productDetails.subscriptionOfferDetails.isNullOrEmpty()
-                when (productGroup) {
-                    PRODUCT_GROUP_PREMIUM -> isSubscription
-                    PRODUCT_GROUP_BUNDLE -> productDetails.productId == STARTER_BUNDLE_PRODUCT_ID
-                    else -> !isSubscription && productDetails.productId != STARTER_BUNDLE_PRODUCT_ID
-                }
-            } ?: emptyList()
-        val canShowPremiumBundle = productGroup == PRODUCT_GROUP_BUNDLE &&
-            productDetailsList.hasPremiumSubscriptionAddOns()
+        val safeList = PurchaseProductGroups.productsForGroup(productDetailsList, productGroup)
+        val canShowPremiumBundle = PurchaseProductGroups.canShowPremiumSubscriptionBundle(
+            productDetailsList = productDetailsList,
+            productGroup = productGroup,
+        )
 
         adapter.setProducts(safeList)
         binding.btnSubscriptionAddOns.visibility = if (canShowPremiumBundle) View.VISIBLE else View.GONE
         if (safeList.isEmpty() && !canShowPremiumBundle) {
             binding.purchaseStatus.visibility = View.VISIBLE
             binding.purchaseStatus.text = when (productGroup) {
-                PRODUCT_GROUP_PREMIUM -> "Premium subscription is not available yet. Please install from Google Play with a tester account and try again later."
-                PRODUCT_GROUP_BUNDLE -> "Bundle offers are not available yet. Please install from Google Play with a tester account and try again later."
+                PurchaseProductGroups.PREMIUM -> "Premium subscription is not available yet. Please install from Google Play with a tester account and try again later."
+                PurchaseProductGroups.BUNDLE -> "Bundle offers are not available yet. Please install from Google Play with a tester account and try again later."
                 else -> "Coin products are not available yet. Please install from Google Play with a tester account and try again later."
             }
         } else {
@@ -129,7 +117,7 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
 
     private fun fulfillVerifiedPurchase(purchase: Purchase) {
         val purchasedProducts = purchase?.products.orEmpty()
-        if (purchasedProducts.any { it.isSubscriptionProductId() }) {
+        if (purchasedProducts.any { PurchaseProductGroups.isSubscriptionProductId(it) }) {
             Toast.makeText(this, "Subscription active", Toast.LENGTH_SHORT).show()
         }
 
@@ -146,32 +134,13 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
 
         if (coins > 0) {
             coinManager.addCoins(coins)
-            val itemCount = purchasedProducts.count { !it.isSubscriptionProductId() }
+            val itemCount = purchasedProducts.count { !PurchaseProductGroups.isSubscriptionProductId(it) }
             val itemLabel = if (itemCount > 1) "$itemCount items" else "1 item"
             Toast.makeText(this, "Purchase Successful: +$coins coins from $itemLabel", Toast.LENGTH_SHORT).show()
         }
 
         // Mark the purchased item as consumed to allow repurchase
         purchaseManager.consumePurchase(purchase)
-    }
-
-    private fun String.isSubscriptionProductId(): Boolean {
-        return this == PREMIUM_MONTHLY_SUBSCRIPTION_ID ||
-            this == PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID ||
-            this == PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID ||
-            this == PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID
-    }
-
-    private fun List<ProductDetails?>?.hasPremiumSubscriptionAddOns(): Boolean {
-        val productIds = this
-            ?.filterNotNull()
-            ?.filter { !it.subscriptionOfferDetails.isNullOrEmpty() }
-            ?.map { it.productId }
-            ?.toSet()
-            .orEmpty()
-        return productIds.contains(PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID) &&
-            productIds.contains(PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID) &&
-            productIds.contains(PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID)
     }
 
     override fun onPurchaseFailed(billingResult: BillingResult?, errorMessage: String?) {
@@ -191,13 +160,13 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
 
     private fun configureScreenForProductGroup() {
         when (productGroup) {
-            PRODUCT_GROUP_PREMIUM -> {
+            PurchaseProductGroups.PREMIUM -> {
                 binding.toolbarTitle.text = "Premium Features"
                 binding.screenTitle.text = "Premium Subscriptions"
                 binding.screenSubtitle.text = "Choose one premium tier."
                 binding.purchaseStatus.text = "Loading premium subscriptions..."
             }
-            PRODUCT_GROUP_BUNDLE -> {
+            PurchaseProductGroups.BUNDLE -> {
                 binding.toolbarTitle.text = "Bundles"
                 binding.screenTitle.text = "Bundles"
                 binding.screenSubtitle.text = "Use one checkout for bundled coins, or one checkout for all premium add-ons."
@@ -213,9 +182,9 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
     }
 
     companion object {
-        const val EXTRA_PRODUCT_GROUP = "extra_product_group"
-        const val PRODUCT_GROUP_COINS = "coins"
-        const val PRODUCT_GROUP_PREMIUM = "premium"
-        const val PRODUCT_GROUP_BUNDLE = "bundle"
+        const val EXTRA_PRODUCT_GROUP = PurchaseProductGroups.EXTRA_PRODUCT_GROUP
+        const val PRODUCT_GROUP_COINS = PurchaseProductGroups.COINS
+        const val PRODUCT_GROUP_PREMIUM = PurchaseProductGroups.PREMIUM
+        const val PRODUCT_GROUP_BUNDLE = PurchaseProductGroups.BUNDLE
     }
 }
