@@ -7,13 +7,9 @@ import com.android.billingclient.api.QueryProductDetailsParams
 
 internal class ProductDetailsLoader(
     private val billingClient: BillingClient,
-    private val callback: Callback,
+    private val onLoaded: (List<ProductDetails>) -> Unit,
+    private val onFailed: (BillingResult, String) -> Unit,
 ) {
-    interface Callback {
-        fun onProductsLoaded(products: List<ProductDetails>)
-        fun onProductsLoadFailed(billingResult: BillingResult, message: String)
-    }
-
     fun loadAllProducts() {
         if (!billingClient.isReady) return
 
@@ -25,7 +21,7 @@ internal class ProductDetailsLoader(
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 loadSubscriptionProducts(queryProductDetailsResult.productDetailsList.toMutableList())
             } else {
-                callback.onProductsLoadFailed(
+                onFailed(
                     billingResult,
                     "Unable to load coin products: ${billingResult.debugMessage}",
                 )
@@ -42,7 +38,7 @@ internal class ProductDetailsLoader(
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 products += queryProductDetailsResult.productDetailsList
             }
-            callback.onProductsLoaded(products)
+            onLoaded(products)
         }
     }
 }

@@ -12,7 +12,7 @@ import com.android.billingclient.api.Purchase
 class RichmanPurchaseManager(
     private val context: Context,
     private val listener: PurchaseUpdateListener,
-) : ProductDetailsLoader.Callback {
+) {
     private val productDetailsStore = ProductDetailsStore()
     private lateinit var billingClient: BillingClient
     private lateinit var purchaseFlowLauncher: PurchaseFlowLauncher
@@ -35,17 +35,6 @@ class RichmanPurchaseManager(
 
     fun consumePurchase(purchase: Purchase?) {
         purchaseFlowLauncher.consumePurchase(purchase)
-    }
-
-    override fun onProductsLoaded(products: List<ProductDetails>) {
-        productDetailsStore.replaceAll(products)
-        (context as Activity).runOnUiThread {
-            listener.onProductsLoaded(productDetailsStore.all())
-        }
-    }
-
-    override fun onProductsLoadFailed(billingResult: BillingResult, message: String) {
-        notifyPurchaseFailed(billingResult, message)
     }
 
     private fun initializeBillingClient() {
@@ -81,7 +70,11 @@ class RichmanPurchaseManager(
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                    ProductDetailsLoader(billingClient, this@RichmanPurchaseManager).loadAllProducts()
+                    ProductDetailsLoader(
+                        billingClient = billingClient,
+                        onLoaded = ::onProductsLoaded,
+                        onFailed = ::notifyPurchaseFailed,
+                    ).loadAllProducts()
                 } else {
                     notifyPurchaseFailed(
                         billingResult,
@@ -92,6 +85,13 @@ class RichmanPurchaseManager(
 
             override fun onBillingServiceDisconnected() = Unit
         })
+    }
+
+    private fun onProductsLoaded(products: List<ProductDetails>) {
+        productDetailsStore.replaceAll(products)
+        (context as Activity).runOnUiThread {
+            listener.onProductsLoaded(productDetailsStore.all())
+        }
     }
 
     private fun notifyPurchaseFailed(billingResult: BillingResult, message: String) {
