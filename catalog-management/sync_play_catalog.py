@@ -121,6 +121,14 @@ def get_json(token: str, path: str) -> dict:
     return request_json(token, "GET", path)
 
 
+def post_json(token: str, path: str, body: dict) -> dict:
+    return request_json(token, "POST", path, body)
+
+
+def patch_json(token: str, path: str, body: dict) -> dict:
+    return request_json(token, "PATCH", path, body)
+
+
 def try_get_json(token: str, path: str) -> dict:
     try:
         return get_json(token, path)

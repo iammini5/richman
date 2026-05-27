@@ -44,3 +44,13 @@ python3 catalog-management/update_prices_to_ten_percent.py --apply --auth adc
 ```
 
 The API caller must have Play Console permission to manage store presence / monetization catalog for `com.legendsoftware.richman`. Without that permission, Play returns `The caller does not have permission`.
+
+## Permission Grant
+
+Grant the catalog permissions to the Play API service account:
+
+```bash
+python3 catalog-management/grant_play_catalog_permission.py --developer-id 9087387577453167492
+```
+
+This uses the official Play Developer API `grants.create` endpoint. The signed-in Google user must already have permission to manage Play Console users/permissions. If Play returns `You do not have permission to access this object`, the account owner/admin must perform the grant.
