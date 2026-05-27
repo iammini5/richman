@@ -28,3 +28,19 @@ The snapshot uses the current Play catalog APIs:
 - `subscriptions` for premium tiers.
 
 The old `inappproducts` API may return `Please migrate to the new publishing API`; that is kept only as a diagnostic entry.
+
+## Price Updates
+
+Create a dry-run plan that changes every synced Play price to 10% of its current value:
+
+```bash
+python3 catalog-management/update_prices_to_ten_percent.py
+```
+
+Apply the plan through the Play Developer API:
+
+```bash
+python3 catalog-management/update_prices_to_ten_percent.py --apply --auth adc
+```
+
+The API caller must have Play Console permission to manage store presence / monetization catalog for `com.legendsoftware.richman`. Without that permission, Play returns `The caller does not have permission`.

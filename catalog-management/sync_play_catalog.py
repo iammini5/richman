@@ -8,6 +8,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+from typing import Optional
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +17,7 @@ PACKAGE_NAME = "com.legendsoftware.richman"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_ROOT = "https://androidpublisher.googleapis.com/androidpublisher/v3"
 SCOPE = "https://www.googleapis.com/auth/androidpublisher"
+QUOTA_PROJECT = "api-6551333220726747549-208518"
 
 
 def b64url(data: bytes) -> str:
@@ -95,13 +97,28 @@ def access_token(service_account: dict[str, str]) -> str:
     return token_response["access_token"]
 
 
-def get_json(token: str, path: str) -> dict:
+def request_json(token: str, method: str, path: str, body: Optional[dict] = None) -> dict:
+    data = None
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json",
+        "X-Goog-User-Project": QUOTA_PROJECT,
+    }
+    if body is not None:
+        data = json.dumps(body).encode("utf-8")
+        headers["Content-Type"] = "application/json"
     request = urllib.request.Request(
         f"{API_ROOT}{path}",
-        headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+        data=data,
+        headers=headers,
+        method=method,
     )
     with urllib.request.urlopen(request, timeout=30) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+def get_json(token: str, path: str) -> dict:
+    return request_json(token, "GET", path)
 
 
 def try_get_json(token: str, path: str) -> dict:

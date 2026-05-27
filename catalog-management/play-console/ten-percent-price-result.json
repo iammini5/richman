@@ -1,0 +1,90 @@
+{
+  "appliedAtEpochSeconds": 1779850160,
+  "oneTimeProducts": [
+    {
+      "error": {
+        "body": "{\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+        "reason": "Forbidden",
+        "status": 403
+      },
+      "productId": "com.legendsoftware.richman.bundle.starter",
+      "status": "error"
+    },
+    {
+      "error": {
+        "body": "{\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+        "reason": "Forbidden",
+        "status": 403
+      },
+      "productId": "com.legendsoftware.richman.coins.100",
+      "status": "error"
+    },
+    {
+      "error": {
+        "body": "{\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+        "reason": "Forbidden",
+        "status": 403
+      },
+      "productId": "com.legendsoftware.richman.coins.200",
+      "status": "error"
+    },
+    {
+      "error": {
+        "body": "{\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+        "reason": "Forbidden",
+        "status": 403
+      },
+      "productId": "com.legendsoftware.richman.coins.50",
+      "status": "error"
+    },
+    {
+      "error": {
+        "body": "{\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+        "reason": "Forbidden",
+        "status": 403
+      },
+      "productId": "com.legendsoftware.richman.coins.500",
+      "status": "error"
+    }
+  ],
+  "packageName": "com.legendsoftware.richman",
+  "priceScale": 0.1,
+  "subscriptions": [
+    {
+      "error": {
+        "body": "{\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+        "reason": "Forbidden",
+        "status": 403
+      },
+      "productId": "premium_basic_monthly",
+      "status": "error"
+    },
+    {
+      "error": {
+        "body": "{\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+        "reason": "Forbidden",
+        "status": 403
+      },
+      "productId": "premium_monthly",
+      "status": "error"
+    },
+    {
+      "error": {
+        "body": "{\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+        "reason": "Forbidden",
+        "status": 403
+      },
+      "productId": "premium_plus_monthly",
+      "status": "error"
+    },
+    {
+      "error": {
+        "body": "{\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"The caller does not have permission\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n",
+        "reason": "Forbidden",
+        "status": 403
+      },
+      "productId": "premium_pro_monthly",
+      "status": "error"
+    }
+  ]
+}
