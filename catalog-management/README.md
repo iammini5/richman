@@ -54,3 +54,11 @@ python3 catalog-management/grant_play_catalog_permission.py --developer-id 90873
 ```
 
 This uses the official Play Developer API `grants.create` endpoint. The signed-in Google user must already have permission to manage Play Console users/permissions. If Play returns `You do not have permission to access this object`, the account owner/admin must perform the grant.
+
+If the browser auto-selects the wrong Google account during API login, use the account-specific OAuth opener:
+
+```bash
+BROWSER=catalog-management/open_iammini5_oauth.py \
+  gcloud auth application-default login iammini5@gmail.com \
+  --scopes=openid,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/androidpublisher,https://www.googleapis.com/auth/cloud-platform
+```
