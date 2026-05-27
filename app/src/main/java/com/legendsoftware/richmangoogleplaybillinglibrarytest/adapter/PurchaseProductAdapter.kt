@@ -82,9 +82,9 @@ class PurchaseProductAdapter(
                 COINS_200_PRODUCT_ID -> "Entitlement: 200 coins for longer sessions and bigger moves."
                 COINS_500_PRODUCT_ID -> "Entitlement: 500 coins for power play and maximum flexibility."
                 STARTER_BUNDLE_PRODUCT_ID -> "Multi-item checkout: Starter Bundle + 100 Coins + 200 Coins in one Play purchase."
-                PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID -> "Entitlement: Basic premium tools for $1/month."
-                PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID -> "Entitlement: Plus boosters and richer play for $2/month."
-                PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID -> "Entitlement: Pro access and top-tier perks for $3/month."
+                PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID -> "Entitlement: Basic premium tools."
+                PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID -> "Entitlement: Plus boosters and richer play."
+                PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID -> "Entitlement: Pro access and top-tier perks."
                 PREMIUM_MONTHLY_SUBSCRIPTION_ID -> product.description.ifBlank { "Entitlement: Premium Rich Man features every month." }
                 else -> if (isSubscription) {
                     product.description.ifBlank { "Entitlement: Premium Rich Man features every month." }
