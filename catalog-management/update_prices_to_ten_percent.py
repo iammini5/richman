@@ -33,10 +33,26 @@ def nanos_to_money(total_nanos: int, currency_code: str) -> dict:
     return price
 
 
+def normalize_play_price(price: dict) -> dict:
+    currency_code = price["currencyCode"]
+    total = money_to_nanos(price)
+    minimums = {
+        "GEL": 200_000_000,
+        "PEN": 300_000_000,
+    }
+    minimum = minimums.get(currency_code, 100_000_000)
+
+    cent = 10_000_000
+    rounded = round(total / cent) * cent
+    if rounded < minimum:
+        rounded = minimum
+    return nanos_to_money(rounded, currency_code)
+
+
 def ten_percent_price(price: dict) -> dict:
     current = money_to_nanos(price)
     updated = max(1, round(current * 0.10))
-    return nanos_to_money(updated, price["currencyCode"])
+    return normalize_play_price(nanos_to_money(updated, price["currencyCode"]))
 
 
 def scale_price_field(container: dict, key: str, changes: List[dict], product_id: str, location: str) -> None:
@@ -102,6 +118,112 @@ def scale_subscription(subscription: dict, changes: List[dict]) -> dict:
                 }
             )
             regional_config["price"] = new_price
+    return updated
+
+
+def convert_region_prices(token: str, price: dict) -> dict:
+    package = urllib.parse.quote(PACKAGE_NAME, safe="")
+    return sync_play_catalog.post_json(
+        token,
+        f"/applications/{package}/pricing:convertRegionPrices",
+        {"price": price},
+    )
+
+
+def play_converted_price(
+    token: str,
+    original_price: dict,
+    changes: List[dict],
+    product_id: str,
+    location_prefix: str,
+) -> dict:
+    base_price = ten_percent_price(original_price)
+    converted = convert_region_prices(token, base_price)
+    other_regions = converted.get("convertedOtherRegionsPrice", {})
+    region_prices = converted.get("convertedRegionPrices", {})
+
+    prices = {
+        "usdPrice": normalize_play_price(other_regions.get("usdPrice", base_price)),
+        "eurPrice": normalize_play_price(other_regions["eurPrice"]) if other_regions.get("eurPrice") else None,
+        "regionalPrices": {
+            region: normalize_play_price(value["price"])
+            for region, value in region_prices.items()
+            if isinstance(value, dict) and "price" in value
+        },
+        "regionVersion": converted.get("regionVersion") or converted.get("regionsVersion"),
+    }
+    changes.append(
+        {
+            "productId": product_id,
+            "location": f"{location_prefix}.convertedFromUsdBase",
+            "oldPrice": original_price,
+            "newPrice": base_price,
+        }
+    )
+    return prices
+
+
+def scale_one_time_product_with_play_prices(token: str, product: dict, changes: List[dict]) -> dict:
+    updated = copy.deepcopy(product)
+    product_id = updated["productId"]
+    for option in updated.get("purchaseOptions", []):
+        option_id = option.get("purchaseOptionId", "unknown-option")
+        new_regions = option.get("newRegionsConfig", {})
+        base_old_price = new_regions.get("usdPrice")
+        if not base_old_price:
+            continue
+
+        converted = play_converted_price(token, base_old_price, changes, product_id, option_id)
+        new_regions["usdPrice"] = converted["usdPrice"]
+        if converted.get("eurPrice"):
+            new_regions["eurPrice"] = converted["eurPrice"]
+
+        for regional_config in option.get("regionalPricingAndAvailabilityConfigs", []):
+            region = regional_config.get("regionCode")
+            if region in converted["regionalPrices"]:
+                old_price = regional_config.get("price")
+                new_price = converted["regionalPrices"][region]
+                changes.append(
+                    {
+                        "productId": product_id,
+                        "location": f"{option_id}.region.{region}",
+                        "oldPrice": old_price,
+                        "newPrice": new_price,
+                    }
+                )
+                regional_config["price"] = new_price
+    return updated
+
+
+def scale_subscription_with_play_prices(token: str, subscription: dict, changes: List[dict]) -> dict:
+    updated = copy.deepcopy(subscription)
+    product_id = updated["productId"]
+    for base_plan in updated.get("basePlans", []):
+        base_plan_id = base_plan.get("basePlanId", "unknown-base-plan")
+        other_regions = base_plan.get("otherRegionsConfig", {})
+        base_old_price = other_regions.get("usdPrice")
+        if not base_old_price:
+            continue
+
+        converted = play_converted_price(token, base_old_price, changes, product_id, base_plan_id)
+        other_regions["usdPrice"] = converted["usdPrice"]
+        if converted.get("eurPrice"):
+            other_regions["eurPrice"] = converted["eurPrice"]
+
+        for regional_config in base_plan.get("regionalConfigs", []):
+            region = regional_config.get("regionCode")
+            if region in converted["regionalPrices"]:
+                old_price = regional_config.get("price")
+                new_price = converted["regionalPrices"][region]
+                changes.append(
+                    {
+                        "productId": product_id,
+                        "location": f"{base_plan_id}.region.{region}",
+                        "oldPrice": old_price,
+                        "newPrice": new_price,
+                    }
+                )
+                regional_config["price"] = new_price
     return updated
 
 
@@ -214,6 +336,30 @@ def main() -> None:
     else:
         service_account = json.loads(sync_play_catalog.service_account_path().read_text())
         token = sync_play_catalog.access_token(service_account)
+
+    changes = []
+    updated_one_time = [
+        scale_one_time_product_with_play_prices(token, product, changes)
+        for product in one_time_products
+    ]
+    updated_subscriptions = [
+        scale_subscription_with_play_prices(token, subscription, changes)
+        for subscription in subscriptions
+    ]
+    plan.update(
+        {
+            "createdAtEpochSeconds": int(time.time()),
+            "mode": "apply",
+            "priceScale": 0.10,
+            "changeCount": len(changes),
+            "changes": changes,
+            "catalog": {
+                "oneTimeProducts": updated_one_time,
+                "subscriptions": updated_subscriptions,
+            },
+        }
+    )
+    write_json(PLAN, plan)
     results = {
         "packageName": PACKAGE_NAME,
         "appliedAtEpochSeconds": int(time.time()),
