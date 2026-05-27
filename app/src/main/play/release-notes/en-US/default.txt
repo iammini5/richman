@@ -1,1 +1,1 @@
-Moves all bundle purchases into the More menu and keeps purchase lists unique.
+Removes hardcoded subscription prices so product prices come from Google Play.

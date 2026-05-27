@@ -30,8 +30,8 @@ android {
         applicationId = "com.legendsoftware.richman"
         minSdk = 26
         targetSdk = 36
-        versionCode = 24
-        versionName = "1.6.7"
+        versionCode = 25
+        versionName = "1.6.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "RICHMAN_BACKEND_URL", "\"${localProperties.getProperty("RICHMAN_BACKEND_URL") ?: "https://richman-backend-kfy6nq5mia-uw.a.run.app"}\"")
