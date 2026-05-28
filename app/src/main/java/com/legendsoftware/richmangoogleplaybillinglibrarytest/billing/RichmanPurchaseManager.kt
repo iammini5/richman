@@ -3,6 +3,7 @@ package com.legendsoftware.richmangoogleplaybillinglibrarytest.billing
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingResult
@@ -29,7 +30,11 @@ class RichmanPurchaseManager(
     fun launchPurchase(option: PurchaseOption) {
         if (option.isMonthlyBasePlan && PurchaseProducts.isNewPremiumTierProductId(option.productId)) {
             queryActiveSubscriptionFor(option.productId) { oldPurchase ->
-                purchaseFlowLauncher.launchPurchase(option, oldPurchase?.purchaseToken)
+                acknowledgeSubscriptionIfNeeded(oldPurchase) { acknowledged ->
+                    if (acknowledged) {
+                        purchaseFlowLauncher.launchPurchase(option, oldPurchase?.purchaseToken)
+                    }
+                }
             }
         } else {
             purchaseFlowLauncher.launchPurchase(option)
@@ -46,6 +51,14 @@ class RichmanPurchaseManager(
 
     fun consumePurchase(purchase: Purchase?) {
         purchaseFlowLauncher.consumePurchase(purchase)
+    }
+
+    fun acknowledgePurchaseIfNeeded(purchase: Purchase?, onComplete: () -> Unit) {
+        acknowledgeSubscriptionIfNeeded(purchase) { acknowledged ->
+            if (acknowledged) {
+                onComplete()
+            }
+        }
     }
 
     fun showSubscriptionInAppMessages() {
@@ -157,6 +170,49 @@ class RichmanPurchaseManager(
             } else {
                 Log.d(TAG, "Active subscription query failed: ${billingResult.debugMessage}")
                 onResult(null)
+            }
+        }
+    }
+
+    private fun acknowledgeSubscriptionIfNeeded(purchase: Purchase?, onResult: (Boolean) -> Unit) {
+        if (purchase == null || purchase.products.none(PurchaseProducts::isSubscriptionProductId)) {
+            onResult(true)
+            return
+        }
+
+        if (purchase.isAcknowledged) {
+            onResult(true)
+            return
+        }
+
+        if (!billingClient.isReady) {
+            Log.d(TAG, "Cannot acknowledge subscription because BillingClient is disconnected")
+            notifyPurchaseFailed(
+                BillingResult.newBuilder()
+                    .setResponseCode(BillingClient.BillingResponseCode.SERVICE_DISCONNECTED)
+                    .setDebugMessage("Billing service disconnected")
+                    .build(),
+                "Please wait for Google Play Billing to reconnect before switching plans.",
+            )
+            onResult(false)
+            return
+        }
+
+        val params = AcknowledgePurchaseParams.newBuilder()
+            .setPurchaseToken(purchase.purchaseToken)
+            .build()
+
+        billingClient.acknowledgePurchase(params) { billingResult ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                Log.d(TAG, "Acknowledged subscription before continuing")
+                onResult(true)
+            } else {
+                Log.d(TAG, "Subscription acknowledgement failed: ${billingResult.debugMessage}")
+                notifyPurchaseFailed(
+                    billingResult,
+                    "Please acknowledge the current subscription before switching plans. ${billingResult.debugMessage}",
+                )
+                onResult(false)
             }
         }
     }

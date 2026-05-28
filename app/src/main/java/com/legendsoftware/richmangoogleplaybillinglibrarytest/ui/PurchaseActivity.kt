@@ -112,7 +112,9 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
             val result = purchaseSyncClient.syncPurchase(purchase)
             runOnUiThread {
                 result.onSuccess {
-                    fulfillVerifiedPurchase(purchase)
+                    purchaseManager.acknowledgePurchaseIfNeeded(purchase) {
+                        fulfillVerifiedPurchase(purchase)
+                    }
                 }.onFailure {
                     binding.purchaseStatus.visibility = View.VISIBLE
                     binding.purchaseStatus.text = "Purchase verification failed. Please try again."
