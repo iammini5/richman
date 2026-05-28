@@ -1,7 +1,7 @@
 package com.legendsoftware.richmangoogleplaybillinglibrarytest.ui
 
-import com.android.billingclient.api.ProductDetails
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.PurchaseProducts
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.PurchaseOption
 
 object PurchaseProductGroups {
     const val EXTRA_PRODUCT_GROUP = "extra_product_group"
@@ -9,41 +9,43 @@ object PurchaseProductGroups {
     const val PREMIUM = "premium"
     const val BUNDLE = "bundle"
 
+    val MORE_MENU_BUNDLE_ONE_TIME_PRODUCT_IDS = setOf(
+        PurchaseProducts.STARTER_BUNDLE_PRODUCT_ID,
+    )
+
+    val MORE_MENU_BUNDLE_SUBSCRIPTION_PRODUCT_IDS =
+        PurchaseProducts.PREMIUM_SUBSCRIPTION_ADD_ON_IDS.toSet()
+
     fun productsForGroup(
-        productDetailsList: List<ProductDetails?>?,
+        productOptions: List<PurchaseOption>,
         productGroup: String,
-    ): List<ProductDetails> {
-        return productDetailsList
-            ?.filterNotNull()
-            ?.distinctBy { it.productId }
-            ?.filter { productDetails -> productDetails.belongsTo(productGroup) }
-            .orEmpty()
+    ): List<PurchaseOption> {
+        return productOptions
+            .distinctBy { option -> "${option.productId}:${option.basePlanId}:${option.offerToken}" }
+            .filter { option -> option.belongsTo(productGroup) }
     }
 
-    fun canShowPremiumSubscriptionBundle(productDetailsList: List<ProductDetails?>?, productGroup: String): Boolean {
+    fun canShowPremiumSubscriptionBundle(productOptions: List<PurchaseOption>, productGroup: String): Boolean {
         if (productGroup != BUNDLE) return false
-        val productIds = productDetailsList
-            ?.filterNotNull()
-            ?.filter { it.isSubscription() }
-            ?.map { it.productId }
-            ?.toSet()
-            .orEmpty()
-        return productIds.contains(PurchaseProducts.PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID) &&
-            productIds.contains(PurchaseProducts.PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID) &&
-            productIds.contains(PurchaseProducts.PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID)
+        val productIds = productOptions
+            .filter { it.isSubscription }
+            .map { it.productId }
+            .toSet()
+        return productIds.containsAll(MORE_MENU_BUNDLE_SUBSCRIPTION_PRODUCT_IDS)
     }
 
     fun isSubscriptionProductId(productId: String): Boolean =
         PurchaseProducts.isSubscriptionProductId(productId)
 
-    private fun ProductDetails.belongsTo(productGroup: String): Boolean {
+    fun isMoreMenuBundleProductId(productId: String): Boolean =
+        productId in MORE_MENU_BUNDLE_ONE_TIME_PRODUCT_IDS ||
+            productId in MORE_MENU_BUNDLE_SUBSCRIPTION_PRODUCT_IDS
+
+    private fun PurchaseOption.belongsTo(productGroup: String): Boolean {
         return when (productGroup) {
-            PREMIUM -> isSubscription()
-            BUNDLE -> productId == PurchaseProducts.STARTER_BUNDLE_PRODUCT_ID
-            else -> !isSubscription() && productId != PurchaseProducts.STARTER_BUNDLE_PRODUCT_ID
+            PREMIUM -> isSubscription && productId !in MORE_MENU_BUNDLE_SUBSCRIPTION_PRODUCT_IDS
+            BUNDLE -> productId in MORE_MENU_BUNDLE_ONE_TIME_PRODUCT_IDS
+            else -> !isSubscription && productId !in MORE_MENU_BUNDLE_ONE_TIME_PRODUCT_IDS
         }
     }
-
-    private fun ProductDetails.isSubscription(): Boolean =
-        !subscriptionOfferDetails.isNullOrEmpty()
 }

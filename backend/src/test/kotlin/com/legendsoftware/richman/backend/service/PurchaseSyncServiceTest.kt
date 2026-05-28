@@ -60,6 +60,39 @@ class PurchaseSyncServiceTest {
         assertTrue(response.entitlements.premiumExpiresAt!!.isAfter(Instant.now()))
     }
 
+    @Test
+    fun `new premium subscription product ids grant expected tiers`() {
+        val services = RichmanBackendFactory.create(
+            repository = InMemoryPurchaseRepository(),
+            verifier = FakeVerifier(),
+        )
+
+        services.purchaseSyncService.sync(
+            syncRequest(
+                purchaseType = PurchaseType.SUBSCRIPTION,
+                productIds = listOf("premium_basic"),
+                purchaseToken = "new-basic-token",
+            )
+        )
+        services.purchaseSyncService.sync(
+            syncRequest(
+                purchaseType = PurchaseType.SUBSCRIPTION,
+                productIds = listOf("premium_plus"),
+                purchaseToken = "new-plus-token",
+            )
+        )
+        val response = services.purchaseSyncService.sync(
+            syncRequest(
+                purchaseType = PurchaseType.SUBSCRIPTION,
+                productIds = listOf("premium_pro"),
+                purchaseToken = "new-pro-token",
+            )
+        )
+
+        assertEquals("pro", response.entitlements.premiumTier)
+        assertTrue(response.entitlements.premiumExpiresAt!!.isAfter(Instant.now()))
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun `unsupported package is rejected`() {
         val services = RichmanBackendFactory.create(

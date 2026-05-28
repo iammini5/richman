@@ -23,6 +23,9 @@ data class ProductCatalog(
                 "premium_basic_monthly" to ProductRule.Subscription("basic", priority = 2),
                 "premium_plus_monthly" to ProductRule.Subscription("plus", priority = 3),
                 "premium_pro_monthly" to ProductRule.Subscription("pro", priority = 4),
+                "premium_basic" to ProductRule.Subscription("basic", priority = 2),
+                "premium_plus" to ProductRule.Subscription("plus", priority = 3),
+                "premium_pro" to ProductRule.Subscription("pro", priority = 4),
             )
         )
     }

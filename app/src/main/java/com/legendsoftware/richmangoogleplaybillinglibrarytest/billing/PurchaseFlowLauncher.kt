@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingFlowParams.SubscriptionUpdateParams.ReplacementMode
 import com.android.billingclient.api.Purchase
 
 internal class PurchaseFlowLauncher(
@@ -11,16 +12,23 @@ internal class PurchaseFlowLauncher(
     private val billingClient: BillingClient,
     private val productDetailsStore: ProductDetailsStore,
 ) {
-    fun launchPurchase(productId: String) {
+    fun launchPurchase(option: PurchaseOption, oldPurchaseToken: String? = null) {
         if (!billingClient.isReady) return
-        val productDetails = productDetailsStore.get(productId) ?: return
-        val params = productDetailsParams(productDetails)
+        val params = productDetailsParams(option)
 
-        val billingFlowParams = BillingFlowParams.newBuilder()
+        val billingFlowParamsBuilder = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(listOf(params))
-            .build()
 
-        billingClient.launchBillingFlow(context as Activity, billingFlowParams)
+        if (oldPurchaseToken != null && option.isMonthlyBasePlan) {
+            billingFlowParamsBuilder.setSubscriptionUpdateParams(
+                BillingFlowParams.SubscriptionUpdateParams.newBuilder()
+                    .setOldPurchaseToken(oldPurchaseToken)
+                    .setSubscriptionReplacementMode(ReplacementMode.WITHOUT_PRORATION)
+                    .build()
+            )
+        }
+
+        billingClient.launchBillingFlow(context as Activity, billingFlowParamsBuilder.build())
     }
 
     fun launchStarterMultiProductBundle() {
@@ -50,7 +58,7 @@ internal class PurchaseFlowLauncher(
         val params = productIds.mapNotNull { productId ->
             val productDetails = productDetailsStore.get(productId) ?: return@mapNotNull null
             if (!productDetails.subscriptionOfferDetails.isNullOrEmpty()) return@mapNotNull null
-            productDetailsParams(productDetails)
+            productDetailsParams(PurchaseOption(productDetails))
         }
         launchMultiProductFlow(params)
     }
@@ -60,7 +68,7 @@ internal class PurchaseFlowLauncher(
         val params = productIds.mapNotNull { productId ->
             val productDetails = productDetailsStore.get(productId) ?: return@mapNotNull null
             if (productDetails.subscriptionOfferDetails.isNullOrEmpty()) return@mapNotNull null
-            productDetailsParams(productDetails)
+            productDetailsParams(PurchaseOption(productDetails, productDetails.subscriptionOfferDetails?.firstOrNull()))
         }
         launchMultiProductFlow(params)
     }
@@ -76,17 +84,15 @@ internal class PurchaseFlowLauncher(
     }
 
     private fun productDetailsParams(
-        productDetails: com.android.billingclient.api.ProductDetails,
+        option: PurchaseOption,
     ): BillingFlowParams.ProductDetailsParams {
         val paramsBuilder = BillingFlowParams.ProductDetailsParams.newBuilder()
-            .setProductDetails(productDetails)
+            .setProductDetails(option.productDetails)
 
-        productDetails.subscriptionOfferDetails
-            ?.firstOrNull()
-            ?.offerToken
+        option.offerToken
             ?.let(paramsBuilder::setOfferToken)
 
-        ProductDetailsStore.defaultOneTimeOffer(productDetails)
+        ProductDetailsStore.defaultOneTimeOffer(option.productDetails)
             ?.offerToken
             ?.let(paramsBuilder::setOfferToken)
 

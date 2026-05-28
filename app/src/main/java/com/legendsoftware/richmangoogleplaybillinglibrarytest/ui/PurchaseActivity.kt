@@ -10,10 +10,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.billingclient.api.BillingResult
-import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.backend.PurchaseSyncClient
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.adapter.PurchaseProductAdapter
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.PurchaseOption
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.PurchaseUpdateListener
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.PurchaseProducts.COINS_100_PRODUCT_ID
@@ -47,11 +47,11 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
         configureScreenForProductGroup()
         purchaseManager = RichmanPurchaseManager(this, this)
 
-        adapter = PurchaseProductAdapter(emptyList()) { productDetails ->
-            if (productGroup == PurchaseProductGroups.BUNDLE && productDetails.productId == STARTER_BUNDLE_PRODUCT_ID) {
+        adapter = PurchaseProductAdapter(emptyList()) { option ->
+            if (productGroup == PurchaseProductGroups.BUNDLE && option.productId == STARTER_BUNDLE_PRODUCT_ID) {
                 purchaseManager.launchStarterMultiProductBundle()
             } else {
-                purchaseManager.launchPurchase(productDetails.productId)
+                purchaseManager.launchPurchase(option)
             }
         }
 
@@ -67,10 +67,10 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
 
     }
 
-    override fun onProductsLoaded(productDetailsList: List<ProductDetails?>?) {
-        val safeList = PurchaseProductGroups.productsForGroup(productDetailsList, productGroup)
+    override fun onProductsLoaded(productOptions: List<PurchaseOption>) {
+        val safeList = PurchaseProductGroups.productsForGroup(productOptions, productGroup)
         val canShowPremiumBundle = PurchaseProductGroups.canShowPremiumSubscriptionBundle(
-            productDetailsList = productDetailsList,
+            productOptions = productOptions,
             productGroup = productGroup,
         )
 
@@ -85,6 +85,13 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
             }
         } else {
             binding.purchaseStatus.visibility = View.GONE
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::purchaseManager.isInitialized) {
+            purchaseManager.showSubscriptionInAppMessages()
         }
     }
 
@@ -158,12 +165,18 @@ class PurchaseActivity : AppCompatActivity(), PurchaseUpdateListener {
         Toast.makeText(this, "Purchase Canceled", Toast.LENGTH_SHORT).show()
     }
 
+    override fun onSubscriptionStatusUpdated(purchaseToken: String?) {
+        binding.purchaseStatus.visibility = View.VISIBLE
+        binding.purchaseStatus.text = "Subscription status updated."
+        Toast.makeText(this, "Subscription status updated", Toast.LENGTH_SHORT).show()
+    }
+
     private fun configureScreenForProductGroup() {
         when (productGroup) {
             PurchaseProductGroups.PREMIUM -> {
                 binding.toolbarTitle.text = "Premium Features"
                 binding.screenTitle.text = "Premium Subscriptions"
-                binding.screenSubtitle.text = "Choose one premium tier."
+                binding.screenSubtitle.text = "Choose monthly or yearly for each tier."
                 binding.purchaseStatus.text = "Loading premium subscriptions..."
             }
             PurchaseProductGroups.BUNDLE -> {

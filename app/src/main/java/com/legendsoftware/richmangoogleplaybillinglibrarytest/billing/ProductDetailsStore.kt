@@ -22,6 +22,26 @@ internal class ProductDetailsStore {
 
     fun all(): List<ProductDetails> = productDetailsList.toList()
 
+    fun optionsFor(products: List<ProductDetails>): List<PurchaseOption> =
+        products.flatMap { productDetails ->
+            val subscriptionOffers = productDetails.subscriptionOfferDetails.orEmpty()
+            if (subscriptionOffers.isEmpty()) {
+                listOf(PurchaseOption(productDetails))
+            } else {
+                subscriptionOffers
+                    .sortedWith(
+                        compareBy<ProductDetails.SubscriptionOfferDetails> { offer ->
+                            when {
+                                offer.basePlanId.endsWith("-monthly") || offer.basePlanId == PurchaseProducts.MONTHLY_BASE_PLAN_ID -> 0
+                                offer.basePlanId.endsWith("-yearly") || offer.basePlanId == PurchaseProducts.YEARLY_BASE_PLAN_ID -> 1
+                                else -> 2
+                            }
+                        }.thenBy { it.basePlanId }
+                    )
+                    .map { offer -> PurchaseOption(productDetails, offer) }
+            }
+        }
+
     companion object {
         fun defaultOneTimeOffer(productDetails: ProductDetails): ProductDetails.OneTimePurchaseOfferDetails? =
             productDetails.oneTimePurchaseOfferDetailsList?.firstOrNull()

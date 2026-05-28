@@ -1,0 +1,51 @@
+{
+  "appliedAtEpochSeconds": 1779938219,
+  "packageName": "com.legendsoftware.richman",
+  "subscriptions": [
+    {
+      "basePlans": [
+        {
+          "basePlanId": "monthly",
+          "status": "already_active"
+        },
+        {
+          "basePlanId": "yearly",
+          "status": "already_active"
+        }
+      ],
+      "monthlyLegacyCompatible": "updated",
+      "productId": "premium_basic",
+      "status": "already_exists"
+    },
+    {
+      "basePlans": [
+        {
+          "basePlanId": "monthly",
+          "status": "already_active"
+        },
+        {
+          "basePlanId": "yearly",
+          "status": "already_active"
+        }
+      ],
+      "monthlyLegacyCompatible": "updated",
+      "productId": "premium_plus",
+      "status": "already_exists"
+    },
+    {
+      "basePlans": [
+        {
+          "basePlanId": "monthly",
+          "status": "already_active"
+        },
+        {
+          "basePlanId": "yearly",
+          "status": "already_active"
+        }
+      ],
+      "monthlyLegacyCompatible": "updated",
+      "productId": "premium_pro",
+      "status": "already_exists"
+    }
+  ]
+}

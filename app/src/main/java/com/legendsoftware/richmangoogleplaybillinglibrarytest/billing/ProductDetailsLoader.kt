@@ -1,5 +1,6 @@
 package com.legendsoftware.richmangoogleplaybillinglibrarytest.billing
 
+import android.util.Log
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ProductDetails
@@ -30,15 +31,88 @@ internal class ProductDetailsLoader(
     }
 
     private fun loadSubscriptionProducts(products: MutableList<ProductDetails>) {
-        val subscriptionParams = QueryProductDetailsParams.newBuilder()
-            .setProductList(PurchaseProducts.subscriptionProductQueries())
+        querySubscriptionProducts(PurchaseProducts.subscriptionProductQueries()) { billingResult, queryProductDetailsResult ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                Log.d(
+                    TAG,
+                    "Fetched subscription products: ${
+                        queryProductDetailsResult.productDetailsList.joinToString { productDetails ->
+                            "${productDetails.productId}[offers=${productDetails.subscriptionOfferDetails.orEmpty().joinToString { offer -> offer.basePlanId }}]"
+                        }
+                    }"
+                )
+                queryProductDetailsResult.unfetchedProductList.forEach { unfetchedProduct ->
+                    Log.d(
+                        TAG,
+                        "Unfetched subscription product: ${unfetchedProduct.productId}, status=${unfetchedProduct.statusCode}",
+                    )
+                }
+                products += queryProductDetailsResult.productDetailsList
+                retryUnfetchedSubscriptionProducts(
+                    productIds = queryProductDetailsResult.unfetchedProductList.map { it.productId },
+                    products = products,
+                )
+            } else {
+                Log.d(TAG, "Subscription product query failed: ${billingResult.debugMessage}")
+                onLoaded(products)
+            }
+        }
+    }
+
+    private fun retryUnfetchedSubscriptionProducts(
+        productIds: List<String>,
+        products: MutableList<ProductDetails>,
+    ) {
+        val nextProductId = productIds.firstOrNull()
+        if (nextProductId == null) {
+            onLoaded(products)
+            return
+        }
+
+        val query = QueryProductDetailsParams.Product.newBuilder()
+            .setProductId(nextProductId)
+            .setProductType(BillingClient.ProductType.SUBS)
             .build()
 
-        billingClient.queryProductDetailsAsync(subscriptionParams) { billingResult, queryProductDetailsResult ->
+        querySubscriptionProducts(listOf(query)) { billingResult, queryProductDetailsResult ->
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                products += queryProductDetailsResult.productDetailsList
+                val fetchedProducts = queryProductDetailsResult.productDetailsList
+                if (fetchedProducts.isNotEmpty()) {
+                    Log.d(
+                        TAG,
+                        "Fetched subscription product on retry: ${
+                            fetchedProducts.joinToString { productDetails ->
+                                "${productDetails.productId}[offers=${productDetails.subscriptionOfferDetails.orEmpty().joinToString { offer -> offer.basePlanId }}]"
+                            }
+                        }"
+                    )
+                    products += fetchedProducts
+                }
+                queryProductDetailsResult.unfetchedProductList.forEach { unfetchedProduct ->
+                    Log.d(
+                        TAG,
+                        "Still unfetched subscription product: ${unfetchedProduct.productId}, status=${unfetchedProduct.statusCode}",
+                    )
+                }
+            } else {
+                Log.d(TAG, "Subscription product retry failed for $nextProductId: ${billingResult.debugMessage}")
             }
-            onLoaded(products)
+            retryUnfetchedSubscriptionProducts(productIds.drop(1), products)
         }
+    }
+
+    private fun querySubscriptionProducts(
+        queries: List<QueryProductDetailsParams.Product>,
+        onResult: (BillingResult, com.android.billingclient.api.QueryProductDetailsResult) -> Unit,
+    ) {
+        val subscriptionParams = QueryProductDetailsParams.newBuilder()
+            .setProductList(queries)
+            .build()
+
+        billingClient.queryProductDetailsAsync(subscriptionParams, onResult)
+    }
+
+    companion object {
+        private const val TAG = "ProductDetailsLoader"
     }
 }
