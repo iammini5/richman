@@ -14658,7 +14658,7 @@
                   "regionCode": "ZW"
                 }
               ],
-              "state": "ACTIVE"
+              "state": "INACTIVE"
             },
             {
               "autoRenewingBasePlanType": {
@@ -16201,7 +16201,7 @@
                   "regionCode": "ZW"
                 }
               ],
-              "state": "ACTIVE"
+              "state": "INACTIVE"
             }
           ],
           "listings": [
@@ -19201,7 +19201,7 @@
                   "regionCode": "ZW"
                 }
               ],
-              "state": "ACTIVE"
+              "state": "INACTIVE"
             },
             {
               "autoRenewingBasePlanType": {
@@ -20744,7 +20744,7 @@
                   "regionCode": "ZW"
                 }
               ],
-              "state": "ACTIVE"
+              "state": "INACTIVE"
             }
           ],
           "listings": [
@@ -22207,5 +22207,5 @@
   },
   "packageName": "com.legendsoftware.richman",
   "source": "Google Play Developer API",
-  "syncedAtEpochSeconds": 1779938226
+  "syncedAtEpochSeconds": 1779939202
 }

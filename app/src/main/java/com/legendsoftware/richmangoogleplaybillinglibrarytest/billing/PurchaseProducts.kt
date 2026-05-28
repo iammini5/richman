@@ -32,15 +32,12 @@ object PurchaseProducts {
     )
 
     val PREMIUM_SUBSCRIPTION_ADD_ON_IDS = listOf(
-        PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID,
         PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID,
         PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID,
     )
 
     val PREMIUM_TIER_SUBSCRIPTION_IDS = listOf(
         PREMIUM_BASIC_SUBSCRIPTION_ID,
-        PREMIUM_PLUS_SUBSCRIPTION_ID,
-        PREMIUM_PRO_SUBSCRIPTION_ID,
     )
 
     fun oneTimeProductQueries(): List<QueryProductDetailsParams.Product> = listOf(
@@ -53,10 +50,6 @@ object PurchaseProducts {
 
     fun subscriptionProductQueries(): List<QueryProductDetailsParams.Product> = listOf(
         subscriptionProduct(PREMIUM_BASIC_SUBSCRIPTION_ID),
-        subscriptionProduct(PREMIUM_PLUS_SUBSCRIPTION_ID),
-        subscriptionProduct(PREMIUM_PRO_SUBSCRIPTION_ID),
-        subscriptionProduct(PREMIUM_MONTHLY_SUBSCRIPTION_ID),
-        subscriptionProduct(PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID),
         subscriptionProduct(PREMIUM_PLUS_MONTHLY_SUBSCRIPTION_ID),
         subscriptionProduct(PREMIUM_PRO_MONTHLY_SUBSCRIPTION_ID),
     )

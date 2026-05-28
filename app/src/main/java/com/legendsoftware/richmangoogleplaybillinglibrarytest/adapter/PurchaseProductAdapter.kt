@@ -77,7 +77,7 @@ class PurchaseProductAdapter(
             }
 
             return when (option.productId) {
-                PREMIUM_BASIC_SUBSCRIPTION_ID -> "Basic $planLabel"
+                PREMIUM_BASIC_SUBSCRIPTION_ID -> "Basic Premium $planLabel"
                 PREMIUM_PLUS_SUBSCRIPTION_ID -> "Plus $planLabel"
                 PREMIUM_PRO_SUBSCRIPTION_ID -> "Pro $planLabel"
                 PREMIUM_BASIC_MONTHLY_SUBSCRIPTION_ID -> "Basic Monthly"

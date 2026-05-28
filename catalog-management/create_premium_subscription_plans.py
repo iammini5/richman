@@ -17,6 +17,7 @@ PLAN = ROOT / "catalog-management" / "play-console" / "premium-subscription-plan
 RESULT = ROOT / "catalog-management" / "play-console" / "premium-subscription-result.json"
 PACKAGE_NAME = "com.legendsoftware.richman"
 REGIONS_VERSION = "2025/03"
+DEACTIVATE_SAME_PRODUCT_ID_PRODUCTS = ("premium_plus", "premium_pro")
 
 PRODUCTS = [
     {
@@ -25,20 +26,6 @@ PRODUCTS = [
         "description": "Basic premium tools.",
         "monthlyUsd": {"currencyCode": "USD", "nanos": 990000000},
         "yearlyUsd": {"currencyCode": "USD", "units": "9", "nanos": 990000000},
-    },
-    {
-        "productId": "premium_plus",
-        "title": "Plus Premium",
-        "description": "Plus boosters and richer play.",
-        "monthlyUsd": {"currencyCode": "USD", "units": "1", "nanos": 990000000},
-        "yearlyUsd": {"currencyCode": "USD", "units": "19", "nanos": 990000000},
-    },
-    {
-        "productId": "premium_pro",
-        "title": "Pro Premium",
-        "description": "Pro access and top-tier perks.",
-        "monthlyUsd": {"currencyCode": "USD", "units": "2", "nanos": 990000000},
-        "yearlyUsd": {"currencyCode": "USD", "units": "29", "nanos": 990000000},
     },
 ]
 
@@ -213,6 +200,20 @@ def activate_base_plan(token: str, product_id: str, base_plan_id: str) -> dict:
     )
 
 
+def deactivate_base_plan(token: str, product_id: str, base_plan_id: str) -> dict:
+    package = urllib.parse.quote(PACKAGE_NAME, safe="")
+    quoted_product = urllib.parse.quote(product_id, safe="")
+    quoted_base_plan = urllib.parse.quote(base_plan_id, safe="")
+    body = {
+        "latencyTolerance": "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT",
+    }
+    return sync_play_catalog.post_json(
+        token,
+        f"/applications/{package}/subscriptions/{quoted_product}/basePlans/{quoted_base_plan}:deactivate",
+        body,
+    )
+
+
 def active_base_plan_ids(subscription: dict) -> set[str]:
     return {
         base_plan.get("basePlanId", "")
@@ -242,8 +243,8 @@ def ensure_monthly_legacy_compatible(subscription: dict) -> tuple[dict, bool]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Create and activate Richman's new Premium subscription products.")
-    parser.add_argument("--apply", action="store_true", help="Create and activate the products in Play Console.")
+    parser = argparse.ArgumentParser(description="Configure Richman's Basic Premium subscription product.")
+    parser.add_argument("--apply", action="store_true", help="Apply the product catalog changes in Play Console.")
     parser.add_argument(
         "--auth",
         choices=("service-account", "gcloud", "adc"),
@@ -260,12 +261,13 @@ def main() -> None:
         "mode": "apply" if args.apply else "dry-run",
         "regionsVersion": REGIONS_VERSION,
         "subscriptions": planned,
+        "deactivateSameProductIdProducts": list(DEACTIVATE_SAME_PRODUCT_ID_PRODUCTS),
     }
     write_json(PLAN, plan)
 
     if not args.apply:
         print(f"Wrote dry-run plan to {PLAN.relative_to(ROOT)}")
-        print("Planned 3 subscription products, each with monthly and yearly base plans.")
+        print("Planned Basic Premium monthly/yearly setup and Plus/Pro same-product-ID deactivation.")
         return
 
     results = {
@@ -316,6 +318,24 @@ def main() -> None:
                     entry["basePlans"].append({"basePlanId": base_plan_id, "status": "activated", "responseState": state})
                 except urllib.error.HTTPError as exc:
                     entry["basePlans"].append({"basePlanId": base_plan_id, "status": "error", "error": api_error(exc)})
+        except urllib.error.HTTPError as exc:
+            entry["status"] = "error"
+            entry["error"] = api_error(exc)
+        results["subscriptions"].append(entry)
+        print(f"{product_id}: {entry['status']}")
+
+    for product_id in DEACTIVATE_SAME_PRODUCT_ID_PRODUCTS:
+        entry = {"productId": product_id, "status": "not_found", "basePlans": []}
+        try:
+            existing = get_subscription(token, product_id)
+            if existing:
+                entry["status"] = "found"
+                for base_plan_id in active_base_plan_ids(existing):
+                    try:
+                        deactivate_base_plan(token, product_id, base_plan_id)
+                        entry["basePlans"].append({"basePlanId": base_plan_id, "status": "deactivated"})
+                    except urllib.error.HTTPError as exc:
+                        entry["basePlans"].append({"basePlanId": base_plan_id, "status": "error", "error": api_error(exc)})
         except urllib.error.HTTPError as exc:
             entry["status"] = "error"
             entry["error"] = api_error(exc)

@@ -50,48 +50,55 @@ Keep `premium_monthly` active only if existing testers still need the old subscr
 
 ## Next Subscription Plan Design
 
-Product decision: use one subscription product per premium tier, with monthly and yearly base plans inside the same product ID.
+Product decision: use `premium_basic` as the only same-product-ID subscription with monthly and yearly base plans. Keep Plus and Pro as monthly-only products.
 
-This is the preferred model for the next Richman subscription setup because monthly and yearly options should be alternate billing periods for the same entitlement, not separate entitlements that a player can accidentally stack.
+This keeps the Basic Premium monthly/yearly switch flow inside one product ID while preserving the existing Plus Monthly and Pro Monthly products as separate tiers.
 
 ### New subscription product IDs
 
 | Product ID | Tier | Entitlement | Monthly base plan ID | Yearly base plan ID |
 | --- | --- | --- | --- | --- |
-| `premium_basic` | Basic | Basic premium tools | `monthly` | `yearly` |
-| `premium_plus` | Plus | Plus boosters and richer play | `monthly` | `yearly` |
-| `premium_pro` | Pro | Pro access and top-tier perks | `monthly` | `yearly` |
+| `premium_basic` | Basic Premium | Basic premium tools | `monthly` | `yearly` |
 
 ### Intended pricing
 
 | Product ID | Monthly price | Yearly price | Yearly positioning |
 | --- | --- | --- | --- |
 | `premium_basic` | USD 0.99/month | USD 9.99/year | About 2 months free |
-| `premium_plus` | USD 1.99/month | USD 19.99/year | About 2 months free |
-| `premium_pro` | USD 2.99/month | USD 29.99/year | About 2 months free |
+
+### Monthly-only premium products
+
+| Product ID | Tier | Entitlement | Price |
+| --- | --- | --- | --- |
+| `premium_plus_monthly` | Plus | Plus boosters and richer play | USD 0.20/month |
+| `premium_pro_monthly` | Pro | Pro access and top-tier perks | USD 0.30/month |
 
 ### Product Manager requirements
 
-- Show monthly and yearly options together for each tier.
-- Position yearly as the better-value plan.
-- Do not allow monthly and yearly for the same tier to behave like separate add-on entitlements.
-- Backend entitlement should resolve the active premium tier from `premium_basic`, `premium_plus`, or `premium_pro`.
-- Keep `premium_basic_monthly`, `premium_plus_monthly`, `premium_pro_monthly`, and `premium_monthly` active only for migration or existing tester continuity until the new products are validated.
+- Show monthly and yearly options together for Basic Premium.
+- Position Basic Premium yearly as the better-value plan.
+- Do not allow Basic Premium monthly and yearly to behave like separate add-on entitlements.
+- Keep Plus Monthly and Pro Monthly as monthly-only products.
+- Backend entitlement should resolve the active premium tier from `premium_basic`, `premium_plus_monthly`, or `premium_pro_monthly`.
+- Keep `premium_basic_monthly`, `premium_plus`, `premium_pro`, and `premium_monthly` only for migration or existing tester continuity.
 
 ### Play Console setup
 
-Create these as new subscription products:
+Primary same-product-ID subscription:
 
 - `premium_basic`
-- `premium_plus`
-- `premium_pro`
 
-For each product, create two auto-renewing base plans:
+For `premium_basic`, create two auto-renewing base plans:
 
 - Monthly base plan: `monthly`
 - Yearly base plan: `yearly`
 
-After Play Console setup, Engineer should update the app and backend product catalog to query the new product IDs and select the correct base plan offer token for monthly or yearly checkout.
+Keep these monthly-only products active:
+
+- `premium_plus_monthly`
+- `premium_pro_monthly`
+
+Do not offer `premium_plus` or `premium_pro` in the client unless Product Manager decides to return Plus/Pro to same-product-ID monthly/yearly plans.
 
 ### User flow: yearly to monthly switch
 

@@ -5,7 +5,7 @@ This folder keeps Google Play product catalog work repeatable for Richman.
 ## Files
 
 - `sync_play_catalog.py` pulls the current Google Play catalog with the Play Developer API.
-- `create_premium_subscription_plans.py` creates the new Premium subscription products with `monthly` and `yearly` base plans, then activates those base plans.
+- `create_premium_subscription_plans.py` creates or repairs the Basic Premium same-product-ID subscription, then deactivates the unused Plus/Pro same-product-ID base plans.
 - `play-console/catalog.json` is the latest synced snapshot from Play Console.
 
 ## Sync Down
@@ -32,13 +32,13 @@ The old `inappproducts` API may return `Please migrate to the new publishing API
 
 ## Premium Subscription Setup
 
-Create the new Premium subscription products and activate both base plans:
+Create or repair the Basic Premium subscription product and deactivate unused Plus/Pro same-product-ID base plans:
 
 ```bash
 python3 catalog-management/create_premium_subscription_plans.py --apply
 ```
 
-The products created are `premium_basic`, `premium_plus`, and `premium_pro`. Each product gets a `monthly` and `yearly` auto-renewing base plan.
+The active same-product-ID subscription is `premium_basic`, with `monthly` and `yearly` auto-renewing base plans. The monthly-only products `premium_plus_monthly` and `premium_pro_monthly` remain active separately in Play Console.
 
 ## Price Updates
 
