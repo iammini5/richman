@@ -92,7 +92,7 @@ class PurchaseProductAdapter(
         private fun entitlementFor(option: PurchaseOption, isSubscription: Boolean): String {
             val product = option.productDetails
             val cadence = when {
-                option.isMonthlyBasePlan -> "Monthly billing. If switching from yearly, starts at the next billing date."
+                option.isMonthlyBasePlan -> "Monthly billing. If switching from yearly, the monthly plan is charged now."
                 option.isYearlyBasePlan -> "Yearly billing with better value."
                 else -> null
             }

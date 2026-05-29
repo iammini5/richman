@@ -23,7 +23,7 @@ internal class PurchaseFlowLauncher(
             billingFlowParamsBuilder.setSubscriptionUpdateParams(
                 BillingFlowParams.SubscriptionUpdateParams.newBuilder()
                     .setOldPurchaseToken(oldPurchaseToken)
-                    .setSubscriptionReplacementMode(ReplacementMode.WITHOUT_PRORATION)
+                    .setSubscriptionReplacementMode(ReplacementMode.CHARGE_FULL_PRICE)
                     .build()
             )
         }

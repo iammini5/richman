@@ -111,7 +111,7 @@ Flow:
 3. Player taps the monthly option for the tier they already have yearly.
 4. App checks for an active subscription purchase with the same product ID.
 5. App launches Google Play Billing with the monthly base plan offer token.
-6. If an active purchase token exists, app passes it as the old purchase token and uses no-proration replacement behavior so the monthly plan is charged on the next billing date.
+6. If an active purchase token exists, app acknowledges the old subscription when needed, passes it as the old purchase token, and uses full-price replacement behavior so the monthly plan is charged immediately.
 7. Backend verifies the new purchase token through the normal subscription sync path.
 8. Product Manager treats this as a billing cadence switch, not a tier upgrade.
 
@@ -119,5 +119,5 @@ Expected user-facing copy:
 
 ```text
 Switch to Monthly
-Your yearly access stays active until the current billing period ends. Monthly billing starts on the next renewal date.
+Your monthly plan starts now and Google Play charges the monthly price immediately.
 ```
