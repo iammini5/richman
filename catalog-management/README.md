@@ -90,3 +90,5 @@ BROWSER=catalog-management/open_iammini5_oauth.py \
   gcloud auth application-default login iammini5@gmail.com \
   --scopes=openid,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/androidpublisher,https://www.googleapis.com/auth/cloud-platform
 ```
+
+`--apply-pending-minima` implements the subsequently approved worldwide minimum exceptions for those same two products. It retries only an explicit Google Play regional-minimum validation error, uses the minimum returned by Play, and refuses any amount above the original price. Each exception is recorded alongside the API response and verified catalog readback. This approval does not authorize subscriber price increases.
