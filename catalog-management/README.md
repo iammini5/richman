@@ -42,6 +42,23 @@ The active same-product-ID subscription is `premium_basic`, with `monthly` and `
 
 ## Price Updates
 
+### Half-price changes from a live baseline
+
+`inspect_current_catalog.py` reads the full paginated product, base-plan, and offer catalog using existing Application Default Credentials. It writes a new audit snapshot and refuses to overwrite one. Capture the baseline with:
+
+```bash
+python3 catalog-management/inspect_current_catalog.py --output current-catalog-before-half-price.json
+python3 catalog-management/half_price_catalog.py
+```
+
+The half-price tool scales each original regional amount independently, preserves currencies and availability, and records exact and rounded targets. It does not use exchange-rate conversion or silently clamp platform minimums. Review the plan before using `--apply-all`. Readback verifies every returned price field. Re-running an apply uses the same baseline targets, not another reduction of the already changed live prices.
+
+`--apply-pending-uae-minimum` is the explicitly approved exception for the October 2, 2026 change: it targets only 50 coins and `premium_basic_monthly`, setting their UAE amounts to AED 0.30 and retaining half-price targets elsewhere. It does not authorize other minimum exceptions; Play may reject another region. Existing subscriber migrations are separate operations and must be reviewed against legacy cohort amounts to avoid increases.
+
+Audit snapshots and API results should remain local. No tokens, service-account keys, or signing secrets belong in Git.
+
+### Historical ten-percent workflow
+
 Create a dry-run plan that changes every synced Play price to 10% of its current value:
 
 ```bash
