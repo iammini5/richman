@@ -13,6 +13,7 @@ import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryPurchasesParams
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.logging.AppLog
 
 class RichmanPurchaseManager(
     private val context: Context,
@@ -101,14 +102,17 @@ class RichmanPurchaseManager(
             .setListener { billingResult, purchases ->
                 when {
                     billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null -> {
+                        AppLog.info("billing", "Purchase update received")
                         purchases
                             .filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
                             .forEach(listener::onPurchaseSuccess)
                     }
                     billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED -> {
+                        AppLog.info("billing", "Purchase flow canceled")
                         listener.onPurchaseCanceled()
                     }
                     else -> {
+                        AppLog.warn("billing", "Purchase flow failed with response code ${billingResult.responseCode}")
                         listener.onPurchaseFailed(
                             billingResult,
                             "Purchase failed: ${billingResult.debugMessage}",
@@ -129,12 +133,14 @@ class RichmanPurchaseManager(
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    AppLog.info("billing", "Billing connection ready")
                     ProductDetailsLoader(
                         billingClient = billingClient,
                         onLoaded = ::onProductsLoaded,
                         onFailed = ::notifyPurchaseFailed,
                     ).loadAllProducts()
                 } else {
+                    AppLog.warn("billing", "Billing unavailable with response code ${billingResult.responseCode}")
                     notifyPurchaseFailed(
                         billingResult,
                         "Billing unavailable: ${billingResult.debugMessage}",
@@ -142,11 +148,14 @@ class RichmanPurchaseManager(
                 }
             }
 
-            override fun onBillingServiceDisconnected() = Unit
+            override fun onBillingServiceDisconnected() {
+                AppLog.warn("billing", "Billing service disconnected")
+            }
         })
     }
 
     private fun onProductsLoaded(products: List<ProductDetails>) {
+        AppLog.info("billing", "Product details loaded: ${products.size}")
         productDetailsStore.replaceAll(products)
         (context as Activity).runOnUiThread {
             listener.onProductsLoaded(productDetailsStore.optionsFor(productDetailsStore.all()))
