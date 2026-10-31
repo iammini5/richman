@@ -16,6 +16,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RichManGooglePlayBillingLibraryTest">
         <activity
+            android:name=".ui.LogActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.PurchaseActivity"
             android:exported="false" />
         <activity
