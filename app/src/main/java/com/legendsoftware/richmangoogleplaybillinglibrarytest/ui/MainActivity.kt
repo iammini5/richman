@@ -25,6 +25,7 @@ import com.google.android.play.core.install.model.UpdateAvailability
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.PurchaseUpdateListener
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.billing.RichmanPurchaseManager
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.databinding.ActivityMainBinding
+import com.legendsoftware.richmangoogleplaybillinglibrarytest.logging.AppLog
 import com.legendsoftware.richmangoogleplaybillinglibrarytest.viewmodel.CoinManagerViewModel
 
 class MainActivity : AppCompatActivity() {
@@ -51,6 +52,7 @@ class MainActivity : AppCompatActivity() {
         //=============== main ===============//
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
+        AppLog.info("navigation", "Main screen opened")
 
         //========== show current coins dynamically ==========
         coinManager.coins.observe(this) { coins ->
@@ -62,6 +64,7 @@ class MainActivity : AppCompatActivity() {
 
         //========== buy coins ==========//
         binding.buyCoins.setOnClickListener {
+            AppLog.info("navigation", "Coin store opened")
             startActivity(
                 Intent(this, PurchaseActivity::class.java)
                     .putExtra(PurchaseActivity.EXTRA_PRODUCT_GROUP, PurchaseActivity.PRODUCT_GROUP_COINS)
@@ -73,6 +76,7 @@ class MainActivity : AppCompatActivity() {
 
         //========== premium features ==========//
         binding.premiumFeatures.setOnClickListener {
+            AppLog.info("navigation", "Premium store opened")
             startActivity(
                 Intent(this, PurchaseActivity::class.java)
                     .putExtra(PurchaseActivity.EXTRA_PRODUCT_GROUP, PurchaseActivity.PRODUCT_GROUP_PREMIUM)
@@ -81,12 +85,17 @@ class MainActivity : AppCompatActivity() {
 
         //========== more ==========//
         binding.more.setOnClickListener {
+            AppLog.info("navigation", "Bundle store opened")
             startActivity(
                 Intent(this, PurchaseActivity::class.java)
                     .putExtra(PurchaseActivity.EXTRA_PRODUCT_GROUP, PurchaseActivity.PRODUCT_GROUP_BUNDLE)
             )
         }
-
+        binding.more.setOnLongClickListener {
+            AppLog.info("navigation", "Activity log opened")
+            startActivity(Intent(this, LogActivity::class.java))
+            true
+        }
 
         // in-app update
         appUpdateManager = AppUpdateManagerFactory.create(this)
